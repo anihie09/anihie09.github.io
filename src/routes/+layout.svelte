@@ -10,13 +10,21 @@
 
 	let { children }: { children: Snippet } = $props();
 
+	/* =====================================================
+	   BOOT / LOADING
+	   ===================================================== */
+
 	let booting = $state(true);
 	let bootExiting = $state(false);
+
+	/* =====================================================
+	   PAGE TRANSITIONS
+	   ===================================================== */
 
 	let transitioning = $state(false);
 	let transitionLeaving = $state(false);
 
-	let pendingPageTransition = false;
+	let navigationInProgress = false;
 
 	/* =====================================================
 	   INITIAL BOOT
@@ -29,7 +37,7 @@
 			window.setTimeout(() => {
 				booting = false;
 				bootExiting = false;
-			}, 1000);
+			}, 900);
 		}, 2200);
 
 		return () => {
@@ -38,41 +46,44 @@
 	});
 
 	/* =====================================================
-	   PAGE TRANSITION
+	   NAVIGATION TRANSITION
 	   ===================================================== */
 
 	onNavigate((navigation) => {
 		/*
-		 * Don't run the route transition for the initial
-		 * page load. The boot animation handles that.
+		 * Initial page load is handled by the boot screen.
 		 */
 		if (!navigation.from) {
 			return;
 		}
 
-		pendingPageTransition = true;
+		navigationInProgress = true;
 
 		transitioning = true;
 		transitionLeaving = false;
 
 		/*
-		 * Hold navigation very briefly so the first half
-		 * of the glitch can cover the old page.
+		 * Let the glitch cover the current page before
+		 * the new route is rendered.
 		 */
 		return new Promise<void>((resolve) => {
 			window.setTimeout(() => {
 				resolve();
-			}, 430);
+			}, 390);
 		});
 	});
 
 	afterNavigate(() => {
-		if (!pendingPageTransition) {
+		if (!navigationInProgress) {
 			return;
 		}
 
-		pendingPageTransition = false;
+		navigationInProgress = false;
 
+		/*
+		 * The new page is now mounted.
+		 * Fade the transition away smoothly.
+		 */
 		window.setTimeout(() => {
 			transitionLeaving = true;
 
@@ -80,7 +91,7 @@
 				transitioning = false;
 				transitionLeaving = false;
 			}, 720);
-		}, 60);
+		}, 55);
 	});
 </script>
 
@@ -89,6 +100,11 @@
 		name="theme-color"
 		content="#000000"
 	/>
+
+	<meta
+		name="color-scheme"
+		content="dark"
+	/>
 </svelte:head>
 
 <div class="site">
@@ -96,18 +112,10 @@
 	<!-- =================================================
 	     GLOBAL CURSOR SYSTEM
 
-	     KEEP THIS HERE.
+	     THIS MUST EXIST ONLY ONCE.
 
-	     Because this is +layout.svelte, CursorHUD is now
-	     mounted ONCE and persists across:
-	     /
-	     /about
-	     /projects
-	     /contact
-	     /skills
-	     and future routes.
+	     Every route inherits:
 
-	     CursorHUD provides:
 	     --cursor-x
 	     --cursor-y
 	     --cursor-intensity
@@ -117,6 +125,7 @@
 
 	<CursorHUD />
 
+
 	<!-- =================================================
 	     GLOBAL HOME / SIGNATURE BUTTON
 	     ================================================= -->
@@ -124,8 +133,7 @@
 	<a
 		class="home-button"
 		href="/"
-		aria-label="Return home"
-		title="Home"
+		aria-label="Return to home"
 	>
 		<span class="signature-base">
 			<img
@@ -160,34 +168,45 @@
 		></span>
 	</a>
 
-	<!-- =================================================
-	     ALL ROUTES RENDER HERE
 
-	     Home, About, Projects, Contact, etc.
+	<!-- =================================================
+	     ROUTE CONTENT
+
+	     Home
+	     About
+	     Projects
+	     Contact
+	     Future pages
 	     ================================================= -->
 
 	<div class="route-content">
 		{@render children()}
 	</div>
 
+
 	<!-- =================================================
-	     GLOBAL CYBER UI BORDER
+	     GLOBAL CYBER BORDER / UX UI
 	     ================================================= -->
 
 	<div
 		class="global-hud"
 		aria-hidden="true"
 	>
-		<!-- MAIN BORDER -->
+
+		<!-- Main border -->
 
 		<div class="hud-border hud-top"></div>
 		<div class="hud-border hud-right"></div>
 		<div class="hud-border hud-bottom"></div>
 		<div class="hud-border hud-left"></div>
 
-		<!-- TOP CENTER -->
+
+		<!-- =================================================
+		     TOP CENTER DATA
+		     ================================================= -->
 
 		<div class="top-system">
+
 			<div class="top-line"></div>
 
 			<div class="top-node node-a"></div>
@@ -203,11 +222,16 @@
 				<span></span>
 				<span></span>
 			</div>
+
 		</div>
 
-		<!-- TOP RIGHT -->
+
+		<!-- =================================================
+		     TOP RIGHT MODULE
+		     ================================================= -->
 
 		<div class="system-module">
+
 			<div class="system-label">
 				SYS
 			</div>
@@ -224,11 +248,16 @@
 			<div class="system-status">
 				01 / ONLINE
 			</div>
+
 		</div>
 
-		<!-- LEFT RADAR -->
+
+		<!-- =================================================
+		     LEFT RADAR
+		     ================================================= -->
 
 		<div class="radar radar-left">
+
 			<div class="radar-ring radar-ring-a"></div>
 			<div class="radar-ring radar-ring-b"></div>
 			<div class="radar-ring radar-ring-c"></div>
@@ -237,13 +266,17 @@
 			<div class="radar-vertical"></div>
 
 			<div class="radar-sweep"></div>
-
 			<div class="radar-dot"></div>
+
 		</div>
 
-		<!-- RIGHT RADAR -->
+
+		<!-- =================================================
+		     RIGHT RADAR
+		     ================================================= -->
 
 		<div class="radar radar-right">
+
 			<div class="radar-ring radar-ring-a"></div>
 			<div class="radar-ring radar-ring-b"></div>
 			<div class="radar-ring radar-ring-c"></div>
@@ -252,13 +285,17 @@
 			<div class="radar-vertical"></div>
 
 			<div class="radar-sweep"></div>
-
 			<div class="radar-dot"></div>
+
 		</div>
 
-		<!-- LEFT DATA RAIL -->
+
+		<!-- =================================================
+		     LEFT DATA RAIL
+		     ================================================= -->
 
 		<div class="data-rail data-left">
+
 			<div class="rail-number">
 				03
 			</div>
@@ -275,11 +312,16 @@
 				<span>442</span>
 				<span>009</span>
 			</div>
+
 		</div>
 
-		<!-- RIGHT DATA RAIL -->
+
+		<!-- =================================================
+		     RIGHT DATA RAIL
+		     ================================================= -->
 
 		<div class="data-rail data-right">
+
 			<div class="rail-number">
 				08
 			</div>
@@ -296,11 +338,16 @@
 				<span>117</span>
 				<span>903</span>
 			</div>
+
 		</div>
 
-		<!-- BOTTOM LEFT -->
+
+		<!-- =================================================
+		     BOTTOM LEFT MODULE
+		     ================================================= -->
 
 		<div class="bottom-module bottom-left-module">
+
 			<div class="bottom-title">
 				CORE / 02
 			</div>
@@ -319,11 +366,16 @@
 			<div class="bottom-small">
 				SYSTEM READY
 			</div>
+
 		</div>
 
-		<!-- BOTTOM CENTER -->
+
+		<!-- =================================================
+		     BOTTOM CENTER STREAM
+		     ================================================= -->
 
 		<div class="bottom-stream">
+
 			<div class="stream-line"></div>
 
 			<div class="stream-node stream-start"></div>
@@ -344,11 +396,16 @@
 			<div class="stream-text">
 				LINK ESTABLISHED
 			</div>
+
 		</div>
 
-		<!-- BOTTOM RIGHT -->
+
+		<!-- =================================================
+		     BOTTOM RIGHT MODULE
+		     ================================================= -->
 
 		<div class="bottom-module bottom-right-module">
+
 			<div class="bottom-title">
 				STATUS
 			</div>
@@ -364,9 +421,13 @@
 				<span></span>
 				<span></span>
 			</div>
+
 		</div>
 
-		<!-- CORNERS -->
+
+		<!-- =================================================
+		     CORNERS
+		     ================================================= -->
 
 		<div class="corner corner-tl">
 			<div class="corner-long"></div>
@@ -391,22 +452,27 @@
 			<div class="corner-short"></div>
 			<div class="corner-dot"></div>
 		</div>
+
 	</div>
 
+
 	<!-- =================================================
-	     INITIAL BOOT SCREEN
+	     INITIAL LOADING SCREEN
 	     ================================================= -->
 
 	{#if booting}
+
 		<div
 			class:boot-exiting={bootExiting}
 			class="boot-screen"
 			aria-hidden="true"
 		>
+
 			<div class="boot-grid"></div>
 			<div class="boot-vignette"></div>
 
 			<div class="boot-glitches">
+
 				<span class="boot-glitch bg1"></span>
 				<span class="boot-glitch bg2"></span>
 				<span class="boot-glitch bg3"></span>
@@ -415,10 +481,13 @@
 				<span class="boot-glitch bg6"></span>
 				<span class="boot-glitch bg7"></span>
 				<span class="boot-glitch bg8"></span>
+
 			</div>
 
 			<div class="boot-interface">
+
 				<div class="boot-frame">
+
 					<div class="boot-corner btl"></div>
 					<div class="boot-corner btr"></div>
 					<div class="boot-corner bbl"></div>
@@ -452,28 +521,36 @@
 						<span></span>
 						<span></span>
 					</div>
+
 				</div>
+
 			</div>
 
 			<div class="boot-flash"></div>
+
 		</div>
+
 	{/if}
 
+
 	<!-- =================================================
-	     ROUTE TRANSITION
+	     PAGE TRANSITION
 	     ================================================= -->
 
 	{#if transitioning}
+
 		<div
 			class:transition-leaving={transitionLeaving}
 			class="route-transition"
 			aria-hidden="true"
 		>
+
 			<div class="transition-black"></div>
 
 			<div class="transition-scanlines"></div>
 
 			<div class="transition-glitches">
+
 				<span class="transition-strip t1"></span>
 				<span class="transition-strip t2"></span>
 				<span class="transition-strip t3"></span>
@@ -486,9 +563,11 @@
 				<span class="transition-strip t10"></span>
 				<span class="transition-strip t11"></span>
 				<span class="transition-strip t12"></span>
+
 			</div>
 
 			<div class="transition-interface">
+
 				<div class="transition-circle outer"></div>
 				<div class="transition-circle inner"></div>
 
@@ -512,12 +591,17 @@
 					<span></span>
 					<span></span>
 				</div>
+
 			</div>
 
 			<div class="transition-flash"></div>
+
 		</div>
+
 	{/if}
+
 </div>
+
 
 <style>
 	/* =====================================================
@@ -526,21 +610,31 @@
 
 	:global(:root) {
 		--hud-pink: #ff0080;
-		--hud-pink-soft: rgba(255, 0, 128, 0.55);
-		--hud-pink-faint: rgba(255, 0, 128, 0.18);
 
-		/*
-		 * CursorHUD updates these globally.
-		 *
-		 * Individual routes can use these variables
-		 * without creating another mouse listener.
-		 */
+		--hud-pink-soft:
+			rgba(
+				255,
+				0,
+				128,
+				0.55
+			);
+
+		--hud-pink-faint:
+			rgba(
+				255,
+				0,
+				128,
+				0.18
+			);
+
+		/* These are continuously written by CursorHUD. */
 		--cursor-x: 50%;
 		--cursor-y: 50%;
 		--cursor-intensity: 0;
 		--cursor-vx: 0px;
 		--cursor-vy: 0px;
 	}
+
 
 	/* =====================================================
 	   GLOBAL RESET
@@ -561,7 +655,7 @@
 	}
 
 	:global(body) {
-		min-height: 100vh;
+		overflow-x: hidden;
 	}
 
 	:global(*) {
@@ -569,8 +663,10 @@
 	}
 
 	:global(a) {
-		-webkit-tap-highlight-color: transparent;
+		-webkit-tap-highlight-color:
+			transparent;
 	}
+
 
 	/* =====================================================
 	   SITE
@@ -580,6 +676,7 @@
 		position: relative;
 
 		width: 100%;
+
 		min-height: 100vh;
 
 		background: #000;
@@ -594,6 +691,7 @@
 		min-height: 100vh;
 	}
 
+
 	/* =====================================================
 	   GLOBAL HOME BUTTON
 	   ===================================================== */
@@ -606,18 +704,19 @@
 
 		z-index: 1000;
 
-		width: 230px;
-		height: 92px;
+		width: 220px;
+		height: 88px;
 
 		display: block;
 
-		text-decoration: none;
-
 		cursor: pointer;
+
+		text-decoration: none;
 
 		pointer-events: auto;
 
-		transform-origin: left top;
+		transform-origin:
+			left top;
 
 		transition:
 			transform
@@ -687,21 +786,21 @@
 			hue-rotate(285deg)
 			brightness(1.5);
 
-		mix-blend-mode: screen;
+		mix-blend-mode:
+			screen;
 	}
 
 	.signature-glitch-b {
 		filter:
 			grayscale(1)
-			brightness(2.4);
+			brightness(2.3);
 
-		mix-blend-mode: screen;
+		mix-blend-mode:
+			screen;
 	}
 
 	.signature-scan {
 		position: absolute;
-
-		z-index: 3;
 
 		left: 0;
 		right: 0;
@@ -709,6 +808,8 @@
 		top: 50%;
 
 		height: 2px;
+
+		z-index: 3;
 
 		opacity: 0;
 
@@ -719,8 +820,6 @@
 				var(--hud-pink),
 				transparent
 			);
-
-		pointer-events: none;
 	}
 
 	.home-button:hover,
@@ -731,7 +830,7 @@
 
 		filter:
 			drop-shadow(
-				0 0 5px
+				0 0 6px
 				rgba(
 					255,
 					0,
@@ -789,8 +888,9 @@
 			infinite;
 	}
 
+
 	/* =====================================================
-	   SIGNATURE GLITCH
+	   SIGNATURE ANIMATIONS
 	   ===================================================== */
 
 	@keyframes signature-glitch-a {
@@ -951,8 +1051,9 @@
 		}
 	}
 
+
 	/* =====================================================
-	   GLOBAL HUD
+	   GLOBAL BORDER
 	   ===================================================== */
 
 	.global-hud {
@@ -969,10 +1070,6 @@
 		color:
 			var(--hud-pink);
 	}
-
-	/* =====================================================
-	   BORDER
-	   ===================================================== */
 
 	.hud-border {
 		position: absolute;
@@ -1024,6 +1121,7 @@
 
 		width: 1px;
 	}
+
 
 	/* =====================================================
 	   TOP SYSTEM
@@ -1086,8 +1184,8 @@
 	.top-bars {
 		position: absolute;
 
-		top: 24px;
 		left: 37%;
+		top: 24px;
 
 		display: flex;
 
@@ -1108,8 +1206,9 @@
 			infinite;
 	}
 
+
 	/* =====================================================
-	   SYSTEM MODULE
+	   TOP RIGHT MODULE
 	   ===================================================== */
 
 	.system-module {
@@ -1182,6 +1281,7 @@
 		color:
 			var(--hud-pink-soft);
 	}
+
 
 	/* =====================================================
 	   RADARS
@@ -1310,8 +1410,9 @@
 			var(--hud-pink);
 	}
 
+
 	/* =====================================================
-	   DATA RAILS
+	   SIDE DATA RAILS
 	   ===================================================== */
 
 	.data-rail {
@@ -1366,8 +1467,7 @@
 		height: 6px;
 
 		margin:
-			12px 0
-			0 2px;
+			12px 0 0 2px;
 
 		border:
 			1px solid
@@ -1395,6 +1495,7 @@
 
 		font-size: 4px;
 	}
+
 
 	/* =====================================================
 	   BOTTOM MODULES
@@ -1481,8 +1582,9 @@
 		font-size: 5px;
 	}
 
+
 	/* =====================================================
-	   BOTTOM STREAM
+	   BOTTOM CENTER STREAM
 	   ===================================================== */
 
 	.bottom-stream {
@@ -1600,6 +1702,7 @@
 			0.15em;
 	}
 
+
 	/* =====================================================
 	   CORNERS
 	   ===================================================== */
@@ -1704,6 +1807,7 @@
 
 		background: #000;
 	}
+
 
 	/* =====================================================
 	   GLOBAL HUD ANIMATIONS
@@ -1906,6 +2010,7 @@
 		}
 	}
 
+
 	/* =====================================================
 	   BOOT SCREEN
 	   ===================================================== */
@@ -1919,7 +2024,8 @@
 
 		overflow: hidden;
 
-		background: #000;
+		background:
+			#000;
 
 		pointer-events: none;
 	}
@@ -2014,63 +2120,49 @@
 		top: 27%;
 		right: 4%;
 		width: 42%;
-
-		animation-delay:
-			0.07s;
+		animation-delay: .07s;
 	}
 
 	.bg3 {
 		top: 38%;
 		left: 12%;
 		width: 69%;
-
-		animation-delay:
-			0.14s;
+		animation-delay: .14s;
 	}
 
 	.bg4 {
 		top: 48%;
 		right: 0;
 		width: 55%;
-
-		animation-delay:
-			0.21s;
+		animation-delay: .21s;
 	}
 
 	.bg5 {
 		top: 58%;
 		left: 3%;
 		width: 63%;
-
-		animation-delay:
-			0.28s;
+		animation-delay: .28s;
 	}
 
 	.bg6 {
 		top: 68%;
 		right: 9%;
 		width: 62%;
-
-		animation-delay:
-			0.35s;
+		animation-delay: .35s;
 	}
 
 	.bg7 {
 		top: 79%;
 		left: 16%;
 		width: 53%;
-
-		animation-delay:
-			0.42s;
+		animation-delay: .42s;
 	}
 
 	.bg8 {
 		top: 88%;
 		right: 2%;
 		width: 47%;
-
-		animation-delay:
-			0.49s;
+		animation-delay: .49s;
 	}
 
 	.boot-interface {
@@ -2135,7 +2227,6 @@
 	.btl {
 		left: -1px;
 		top: -1px;
-
 		border-left: 1px solid;
 		border-top: 1px solid;
 	}
@@ -2143,7 +2234,6 @@
 	.btr {
 		right: -1px;
 		top: -1px;
-
 		border-right: 1px solid;
 		border-top: 1px solid;
 	}
@@ -2151,7 +2241,6 @@
 	.bbl {
 		left: -1px;
 		bottom: -1px;
-
 		border-left: 1px solid;
 		border-bottom: 1px solid;
 	}
@@ -2159,7 +2248,6 @@
 	.bbr {
 		right: -1px;
 		bottom: -1px;
-
 		border-right: 1px solid;
 		border-bottom: 1px solid;
 	}
@@ -2177,7 +2265,10 @@
 		border-radius: 50%;
 
 		transform:
-			translate(-50%, -50%);
+			translate(
+				-50%,
+				-50%
+			);
 
 		animation:
 			boot-ring
@@ -2194,9 +2285,7 @@
 	.boot-circle-small {
 		width: 50px;
 		height: 50px;
-
-		animation-delay:
-			0.22s;
+		animation-delay: .22s;
 	}
 
 	.boot-cross {
@@ -2209,7 +2298,10 @@
 			var(--hud-pink-soft);
 
 		transform:
-			translate(-50%, -50%);
+			translate(
+				-50%,
+				-50%
+			);
 	}
 
 	.boot-cross-h {
@@ -2249,7 +2341,8 @@
 		letter-spacing:
 			0.13em;
 
-		white-space: nowrap;
+		white-space:
+			nowrap;
 	}
 
 	.boot-subtitle {
@@ -2279,7 +2372,8 @@
 		letter-spacing:
 			0.15em;
 
-		white-space: nowrap;
+		white-space:
+			nowrap;
 	}
 
 	.boot-progress {
@@ -2324,7 +2418,7 @@
 	.boot-exiting {
 		animation:
 			boot-exit
-			1s
+			900ms
 			cubic-bezier(
 				0.65,
 				0,
@@ -2338,10 +2432,11 @@
 		.boot-flash {
 		animation:
 			boot-flash
-			1s
+			900ms
 			ease
 			forwards;
 	}
+
 
 	/* =====================================================
 	   ROUTE TRANSITION
@@ -2374,7 +2469,7 @@
 
 		animation:
 			transition-black-in
-			430ms
+			390ms
 			ease-out
 			forwards;
 	}
@@ -2455,99 +2550,77 @@
 		top: 20%;
 		left: 34%;
 		width: 64%;
-
-		animation-delay:
-			0.03s;
+		animation-delay: .03s;
 	}
 
 	.t3 {
 		top: 28%;
 		left: -5%;
 		width: 48%;
-
-		animation-delay:
-			0.06s;
+		animation-delay: .06s;
 	}
 
 	.t4 {
 		top: 36%;
 		left: 13%;
 		width: 73%;
-
-		animation-delay:
-			0.09s;
+		animation-delay: .09s;
 	}
 
 	.t5 {
 		top: 44%;
 		left: 43%;
 		width: 57%;
-
-		animation-delay:
-			0.12s;
+		animation-delay: .12s;
 	}
 
 	.t6 {
 		top: 52%;
 		left: -2%;
 		width: 57%;
-
-		animation-delay:
-			0.15s;
+		animation-delay: .15s;
 	}
 
 	.t7 {
 		top: 60%;
 		left: 18%;
 		width: 69%;
-
-		animation-delay:
-			0.18s;
+		animation-delay: .18s;
 	}
 
 	.t8 {
 		top: 68%;
 		left: 45%;
 		width: 58%;
-
-		animation-delay:
-			0.21s;
+		animation-delay: .21s;
 	}
 
 	.t9 {
 		top: 75%;
 		left: 3%;
 		width: 55%;
-
-		animation-delay:
-			0.24s;
+		animation-delay: .24s;
 	}
 
 	.t10 {
 		top: 82%;
 		left: 27%;
 		width: 69%;
-
-		animation-delay:
-			0.27s;
+		animation-delay: .27s;
 	}
 
 	.t11 {
 		top: 88%;
 		left: 8%;
 		width: 43%;
-
-		animation-delay:
-			0.3s;
+		animation-delay: .3s;
 	}
 
 	.t12 {
 		top: 93%;
 		left: 51%;
 		width: 45%;
-
-		animation-delay:
-			0.33s;
+		animation-delay: .33s;
 	}
 
 	.transition-interface {
@@ -2582,7 +2655,10 @@
 		border-radius: 50%;
 
 		transform:
-			translate(-50%, -50%);
+			translate(
+				-50%,
+				-50%
+			);
 
 		animation:
 			boot-ring
@@ -2599,9 +2675,7 @@
 	.transition-circle.inner {
 		width: 52px;
 		height: 52px;
-
-		animation-delay:
-			0.22s;
+		animation-delay: .22s;
 	}
 
 	.transition-title {
@@ -2636,7 +2710,8 @@
 		letter-spacing:
 			0.15em;
 
-		white-space: nowrap;
+		white-space:
+			nowrap;
 	}
 
 	.transition-code {
@@ -2738,14 +2813,14 @@
 			forwards;
 	}
 
+
 	/* =====================================================
-	   BOOT / TRANSITION KEYFRAMES
+	   BOOT KEYFRAMES
 	   ===================================================== */
 
 	@keyframes boot-glitch {
 		0% {
 			opacity: 0;
-
 			transform:
 				translateX(-14%)
 				scaleX(0.7);
@@ -2757,7 +2832,6 @@
 
 		32% {
 			opacity: 0.8;
-
 			transform:
 				translateX(4%)
 				scaleX(1.06);
@@ -2765,7 +2839,6 @@
 
 		48% {
 			opacity: 0.42;
-
 			transform:
 				translateX(-2%)
 				scaleX(0.92);
@@ -2773,7 +2846,6 @@
 
 		64% {
 			opacity: 0.85;
-
 			transform:
 				translateX(5%)
 				scaleX(1.04);
@@ -2781,7 +2853,6 @@
 
 		82% {
 			opacity: 0.22;
-
 			transform:
 				translateX(10%)
 				scaleX(0.78);
@@ -2789,7 +2860,6 @@
 
 		100% {
 			opacity: 0;
-
 			transform:
 				translateX(16%)
 				scaleX(0.65);
@@ -2799,14 +2869,12 @@
 	@keyframes boot-frame-in {
 		from {
 			opacity: 0;
-
 			transform:
 				scale(1.08);
 		}
 
 		to {
 			opacity: 1;
-
 			transform:
 				scale(1);
 		}
@@ -2817,7 +2885,10 @@
 			opacity: 0.12;
 
 			transform:
-				translate(-50%, -50%)
+				translate(
+					-50%,
+					-50%
+				)
 				scale(0.8);
 		}
 
@@ -2825,7 +2896,10 @@
 			opacity: 0.5;
 
 			transform:
-				translate(-50%, -50%)
+				translate(
+					-50%,
+					-50%
+				)
 				scale(1);
 		}
 
@@ -2833,7 +2907,10 @@
 			opacity: 0;
 
 			transform:
-				translate(-50%, -50%)
+				translate(
+					-50%,
+					-50%
+				)
 				scale(1.25);
 		}
 	}
@@ -2841,14 +2918,12 @@
 	@keyframes boot-exit {
 		0% {
 			opacity: 1;
-
 			transform:
 				scale(1);
 		}
 
 		35% {
 			opacity: 0.95;
-
 			transform:
 				scale(1.006)
 				translateX(-2px);
@@ -2856,7 +2931,6 @@
 
 		60% {
 			opacity: 0.72;
-
 			transform:
 				scale(1.015)
 				translateX(3px);
@@ -2864,7 +2938,6 @@
 
 		80% {
 			opacity: 0.35;
-
 			transform:
 				scale(1.028)
 				translateX(-4px);
@@ -2872,7 +2945,6 @@
 
 		100% {
 			opacity: 0;
-
 			transform:
 				scale(1.04)
 				translateX(6px);
@@ -2897,14 +2969,16 @@
 			opacity: 0.055;
 		}
 
-		87% {
-			opacity: 0;
-		}
-
+		87%,
 		100% {
 			opacity: 0;
 		}
 	}
+
+
+	/* =====================================================
+	   TRANSITION KEYFRAMES
+	   ===================================================== */
 
 	@keyframes transition-black-in {
 		from {
@@ -3023,28 +3097,24 @@
 	@keyframes transition-interface-out {
 		0% {
 			opacity: 1;
-
 			transform:
 				scale(1);
 		}
 
 		35% {
 			opacity: 0.9;
-
 			transform:
 				scale(1.01);
 		}
 
 		65% {
 			opacity: 0.55;
-
 			transform:
 				scale(1.04);
 		}
 
 		100% {
 			opacity: 0;
-
 			transform:
 				scale(1.08);
 		}
@@ -3068,20 +3138,19 @@
 			opacity: 0.02;
 		}
 
-		74% {
-			opacity: 0;
-		}
-
+		74%,
 		100% {
 			opacity: 0;
 		}
 	}
+
 
 	/* =====================================================
 	   RESPONSIVE
 	   ===================================================== */
 
 	@media (max-width: 900px) {
+
 		.home-button {
 			left: 3%;
 			top: 2%;
@@ -3105,6 +3174,7 @@
 	}
 
 	@media (max-width: 650px) {
+
 		.home-button {
 			left: 4%;
 			top: 2%;
@@ -3133,11 +3203,13 @@
 		}
 	}
 
+
 	/* =====================================================
 	   REDUCED MOTION
 	   ===================================================== */
 
 	@media (prefers-reduced-motion: reduce) {
+
 		.global-hud * {
 			animation: none !important;
 		}

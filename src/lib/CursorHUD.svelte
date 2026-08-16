@@ -1,545 +1,881 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let canvas: HTMLCanvasElement;
-
-	let mouseX = $state(0);
-	let mouseY = $state(0);
-
-	let targetX = $state(0);
-	let targetY = $state(0);
-
-	let velocity = $state(0);
-	let targetVelocity = $state(0);
-
-	let visible = $state(false);
+	let hud: HTMLDivElement | null = null;
 
 	onMount(() => {
-		const ctx = canvas.getContext('2d');
+		const root = document.documentElement;
 
-		if (!ctx) {
-			return;
-		}
+		let targetX = window.innerWidth * 0.5;
+		let targetY = window.innerHeight * 0.5;
 
-		let width = window.innerWidth;
-		let height = window.innerHeight;
+		let currentX = targetX;
+		let currentY = targetY;
 
-		const characters =
-			'01<>[]{}+*#%@';
+		let previousX = currentX;
+		let previousY = currentY;
 
-		const particles: Array<{
-			x: number;
-			y: number;
-			character: string;
-			alpha: number;
-			size: number;
-			offsetX: number;
-			offsetY: number;
-			baseAlpha: number;
-		}> = [];
+		let velocity = 0;
 
-		const resize = () => {
-			width =
-				window.innerWidth;
+		/*
+		 * Persistent cursor offset.
+		 *
+		 * Unlike velocity, this does not go back to zero
+		 * when the mouse stops. That is what keeps the
+		 * halftone / lens effect alive at rest.
+		 */
+		let persistentX = 0;
+		let persistentY = 0;
 
-			height =
-				window.innerHeight;
+		let idleTime = 0;
 
-			const dpr =
-				Math.min(
-					window.devicePixelRatio || 1,
-					2
-				);
+		let frame = 0;
 
-			canvas.width =
-				width * dpr;
-
-			canvas.height =
-				height * dpr;
-
-			canvas.style.width =
-				`${width}px`;
-
-			canvas.style.height =
-				`${height}px`;
-
-			ctx.setTransform(
-				dpr,
-				0,
-				0,
-				dpr,
-				0,
-				0
+		const reducedMotion =
+			window.matchMedia(
+				'(prefers-reduced-motion: reduce)'
 			);
-		};
 
-		const generateParticles = () => {
-			particles.length = 0;
-
-			const count =
-				Math.min(
-					700,
-					Math.floor(
-						(width * height) /
-							14000
-					)
-				);
-
-			for (
-				let i = 0;
-				i < count;
-				i++
-			) {
-				const alpha =
-					0.055 +
-					Math.random() *
-						0.24;
-
-				particles.push({
-					x:
-						Math.random() *
-						width,
-
-					y:
-						Math.random() *
-						height,
-
-					character:
-						characters[
-							Math.floor(
-								Math.random() *
-									characters.length
-							)
-						],
-
-					alpha,
-
-					baseAlpha:
-						alpha,
-
-					size:
-						7 +
-						Math.random() *
-							4,
-
-					offsetX: 0,
-					offsetY: 0
-				});
-			}
-		};
-
-		resize();
-		generateParticles();
-
-		const handleResize = () => {
-			resize();
-			generateParticles();
-		};
-
-		const handleMove = (
-			event: MouseEvent
+		const handlePointerMove = (
+			event: PointerEvent
 		) => {
-			const nextX =
-				event.clientX;
+			targetX = event.clientX;
+			targetY = event.clientY;
+			idleTime = 0;
+		};
 
-			const nextY =
-				event.clientY;
+		const animate = () => {
+			/* ============================================
+			   SMOOTH CURSOR
+			   ============================================ */
+
+			currentX +=
+				(targetX - currentX) * 0.13;
+
+			currentY +=
+				(targetY - currentY) * 0.13;
+
+			/* ============================================
+			   VELOCITY
+			   ============================================ */
 
 			const dx =
-				nextX -
-				targetX;
+				currentX - previousX;
 
 			const dy =
-				nextY -
-				targetY;
+				currentY - previousY;
 
-			targetVelocity =
-				Math.sqrt(
-					dx * dx +
-						dy * dy
+			const rawVelocity =
+				Math.min(
+					Math.sqrt(
+						dx * dx +
+							dy * dy
+					) / 19,
+					1
 				);
-
-			targetX = nextX;
-			targetY = nextY;
-
-			if (!visible) {
-				mouseX = nextX;
-				mouseY = nextY;
-			}
-
-			visible = true;
-		};
-
-		const handleLeave = () => {
-			visible = false;
-		};
-
-		window.addEventListener(
-			'resize',
-			handleResize
-		);
-
-		window.addEventListener(
-			'mousemove',
-			handleMove
-		);
-
-		window.addEventListener(
-			'mouseleave',
-			handleLeave
-		);
-
-		let animationFrame = 0;
-
-		const render = (
-			time: number
-		) => {
-			mouseX +=
-				(targetX - mouseX) *
-				0.18;
-
-			mouseY +=
-				(targetY - mouseY) *
-				0.18;
 
 			velocity +=
-				(targetVelocity -
-					velocity) *
-				0.2;
+				(rawVelocity - velocity) *
+				0.16;
 
-			targetVelocity *=
-				0.84;
+			/* ============================================
+			   PERSISTENT CURSOR FIELD
 
-			ctx.clearRect(
-				0,
-				0,
-				width,
-				height
+			   This is the important difference.
+
+			   The cursor's current position influences a
+			   low-frequency moving field even after movement
+			   stops.
+			   ============================================ */
+
+			const normalizedX =
+				(
+					currentX /
+					window.innerWidth -
+					0.5
+				) * 2;
+
+			const normalizedY =
+				(
+					currentY /
+					window.innerHeight -
+					0.5
+				) * 2;
+
+			persistentX +=
+				(
+					normalizedX * 18 -
+					persistentX
+				) * 0.025;
+
+			persistentY +=
+				(
+					normalizedY * 18 -
+					persistentY
+				) * 0.025;
+
+			/* ============================================
+			   IDLE PULSE
+			   ============================================ */
+
+			idleTime += 0.018;
+
+			const idlePulse =
+				0.5 +
+				Math.sin(idleTime) * 0.5;
+
+			/* ============================================
+			   SHARED INTENSITY
+
+			   NEVER reaches zero while active.
+			   ============================================ */
+
+			const intensity =
+				reducedMotion.matches
+					? 0
+					: Math.min(
+							0.44 +
+								velocity * 0.44 +
+								idlePulse * 0.08,
+							1
+						);
+
+			/* ============================================
+			   GLOBAL VARIABLES
+			   ============================================ */
+
+			const percentX =
+				`${(currentX / window.innerWidth) * 100}%`;
+
+			const percentY =
+				`${(currentY / window.innerHeight) * 100}%`;
+
+			root.style.setProperty(
+				'--cursor-x',
+				percentX
 			);
 
-			if (visible) {
-				const speed =
-					Math.min(
-						velocity / 18,
-						1
-					);
+			root.style.setProperty(
+				'--cursor-y',
+				percentY
+			);
 
-				const radius =
-					96 +
-					speed * 22;
+			root.style.setProperty(
+				'--cursor-px',
+				`${currentX}px`
+			);
 
-				/* =========================================
-				   SOFT CIRCULAR FIELD
-				   ========================================= */
+			root.style.setProperty(
+				'--cursor-py',
+				`${currentY}px`
+			);
 
-				const gradient =
-					ctx.createRadialGradient(
-						mouseX,
-						mouseY,
-						0,
-						mouseX,
-						mouseY,
-						radius
-					);
+			root.style.setProperty(
+				'--cursor-vx',
+				`${dx}px`
+			);
 
-				gradient.addColorStop(
-					0,
-					'rgba(255,0,128,0.075)'
+			root.style.setProperty(
+				'--cursor-vy',
+				`${dy}px`
+			);
+
+			root.style.setProperty(
+				'--cursor-field-x',
+				`${persistentX}px`
+			);
+
+			root.style.setProperty(
+				'--cursor-field-y',
+				`${persistentY}px`
+			);
+
+			root.style.setProperty(
+				'--cursor-intensity',
+				String(intensity)
+			);
+
+			root.style.setProperty(
+				'--cursor-velocity',
+				String(velocity)
+			);
+
+			root.style.setProperty(
+				'--cursor-idle',
+				String(idlePulse)
+			);
+
+			/* ============================================
+			   HUD INTERNAL VARIABLES
+			   ============================================ */
+
+			if (hud) {
+				hud.style.setProperty(
+					'--x',
+					`${currentX}px`
 				);
 
-				gradient.addColorStop(
-					0.3,
-					'rgba(255,0,128,0.045)'
+				hud.style.setProperty(
+					'--y',
+					`${currentY}px`
 				);
 
-				gradient.addColorStop(
-					0.62,
-					'rgba(255,0,128,0.018)'
+				hud.style.setProperty(
+					'--dx',
+					`${dx}px`
 				);
 
-				gradient.addColorStop(
-					1,
-					'rgba(255,0,128,0)'
+				hud.style.setProperty(
+					'--dy',
+					`${dy}px`
 				);
 
-				ctx.fillStyle =
-					gradient;
-
-				ctx.beginPath();
-
-				ctx.arc(
-					mouseX,
-					mouseY,
-					radius,
-					0,
-					Math.PI * 2
+				hud.style.setProperty(
+					'--field-x',
+					`${persistentX}px`
 				);
 
-				ctx.fill();
-
-				/* =========================================
-				   TEXTURE FIELD
-				   ========================================= */
-
-				ctx.font =
-					'8px monospace';
-
-				ctx.textAlign =
-					'center';
-
-				ctx.textBaseline =
-					'middle';
-
-				for (
-					let i = 0;
-					i <
-					particles.length;
-					i++
-				) {
-					const particle =
-						particles[i];
-
-					const dx =
-						particle.x -
-						mouseX;
-
-					const dy =
-						particle.y -
-						mouseY;
-
-					const distance =
-						Math.sqrt(
-							dx * dx +
-								dy * dy
-						);
-
-					if (
-						distance >
-						radius
-					) {
-						continue;
-					}
-
-					const influence =
-						Math.max(
-							0,
-							1 -
-								distance /
-									radius
-						);
-
-					const strength =
-						Math.pow(
-							influence,
-							2.4
-						);
-
-					const angle =
-						Math.atan2(
-							dy,
-							dx
-						);
-
-					const ripple =
-						Math.sin(
-							distance *
-								0.13 -
-								time *
-									0.002
-						);
-
-					const displacement =
-						strength *
-						(4 +
-							speed *
-								7);
-
-					particle.offsetX =
-						Math.cos(
-							angle
-						) *
-						ripple *
-						displacement;
-
-					particle.offsetY =
-						Math.sin(
-							angle
-						) *
-						ripple *
-						displacement;
-
-					/*
-					 * Strongest directly under
-					 * the pointer, then gradually
-					 * dissolves into the page.
-					 */
-
-					const alpha =
-						particle.baseAlpha *
-						(0.15 +
-							strength *
-								1.25);
-
-					const red = 255;
-
-					const green =
-						Math.floor(
-							60 +
-								100 *
-									(1 -
-										strength)
-						);
-
-					const blue =
-						140 +
-						Math.floor(
-							40 *
-								(1 -
-									strength)
-						);
-
-					ctx.fillStyle =
-						`rgba(${red},${green},${blue},${Math.min(alpha, 0.42)})`;
-
-					ctx.fillText(
-						particle.character,
-						particle.x +
-							particle.offsetX,
-						particle.y +
-							particle.offsetY
-					);
-				}
-
-				/* =========================================
-				   CURSOR MICRO HUD
-				   ========================================= */
-
-				const micro =
-					13 +
-					speed * 4;
-
-				ctx.strokeStyle =
-					`rgba(255,0,128,${0.28 + speed * 0.16})`;
-
-				ctx.lineWidth = 1;
-
-				ctx.beginPath();
-
-				ctx.arc(
-					mouseX,
-					mouseY,
-					micro,
-					0,
-					Math.PI * 2
+				hud.style.setProperty(
+					'--field-y',
+					`${persistentY}px`
 				);
 
-				ctx.stroke();
+				hud.style.setProperty(
+					'--strength',
+					String(intensity)
+				);
 
-				/* four small directional marks */
+				hud.style.setProperty(
+					'--velocity',
+					String(velocity)
+				);
 
-				for (
-					let i = 0;
-					i < 4;
-					i++
-				) {
-					const angle =
-						(i *
-							Math.PI) /
-						2;
-
-					const inner =
-						micro + 5;
-
-					const outer =
-						micro + 9;
-
-					ctx.beginPath();
-
-					ctx.moveTo(
-						mouseX +
-							Math.cos(
-								angle
-							) *
-								inner,
-
-						mouseY +
-							Math.sin(
-								angle
-							) *
-								inner
-					);
-
-					ctx.lineTo(
-						mouseX +
-							Math.cos(
-								angle
-							) *
-								outer,
-
-						mouseY +
-							Math.sin(
-								angle
-							) *
-								outer
-					);
-
-					ctx.stroke();
-				}
+				hud.style.setProperty(
+					'--idle',
+					String(idlePulse)
+				);
 			}
 
-			animationFrame =
+			previousX = currentX;
+			previousY = currentY;
+
+			frame =
 				requestAnimationFrame(
-					render
+					animate
 				);
 		};
 
-		animationFrame =
+		window.addEventListener(
+			'pointermove',
+			handlePointerMove,
+			{
+				passive: true
+			}
+		);
+
+		frame =
 			requestAnimationFrame(
-				render
+				animate
 			);
 
 		return () => {
 			window.removeEventListener(
-				'resize',
-				handleResize
-			);
-
-			window.removeEventListener(
-				'mousemove',
-				handleMove
-			);
-
-			window.removeEventListener(
-				'mouseleave',
-				handleLeave
+				'pointermove',
+				handlePointerMove
 			);
 
 			cancelAnimationFrame(
-				animationFrame
+				frame
 			);
 		};
 	});
 </script>
 
-<canvas
-	bind:this={canvas}
+<div
+	bind:this={hud}
 	class="cursor-hud"
 	aria-hidden="true"
-></canvas>
+>
+	<!-- =============================================
+	     SOFT BLOOM
+	     ============================================= -->
+
+	<div class="cursor-bloom"></div>
+
+
+	<!-- =============================================
+	     GLOBAL HALFTONE LENS
+	     ============================================= -->
+
+	<div class="cursor-halftone"></div>
+
+
+	<!-- =============================================
+	     CYBER SCOPE
+	     ============================================= -->
+
+	<div class="cursor-scope">
+
+		<div class="scope-ring outer"></div>
+		<div class="scope-ring middle"></div>
+		<div class="scope-ring inner"></div>
+
+		<div class="scope-axis horizontal"></div>
+		<div class="scope-axis vertical"></div>
+
+		<div class="scope-node top"></div>
+		<div class="scope-node right"></div>
+		<div class="scope-node bottom"></div>
+		<div class="scope-node left"></div>
+
+	</div>
+
+
+	<!-- =============================================
+	     GLITCH FRAGMENTS
+	     ============================================= -->
+
+	<div class="cursor-fragments">
+		<span class="fragment f1"></span>
+		<span class="fragment f2"></span>
+		<span class="fragment f3"></span>
+		<span class="fragment f4"></span>
+		<span class="fragment f5"></span>
+		<span class="fragment f6"></span>
+	</div>
+</div>
 
 <style>
+	:global(:root) {
+		--cursor-x: 50%;
+		--cursor-y: 50%;
+
+		--cursor-px: 50vw;
+		--cursor-py: 50vh;
+
+		--cursor-vx: 0px;
+		--cursor-vy: 0px;
+
+		--cursor-field-x: 0px;
+		--cursor-field-y: 0px;
+
+		--cursor-intensity: 0.5;
+		--cursor-velocity: 0;
+		--cursor-idle: 0.5;
+	}
+
 	.cursor-hud {
 		position: fixed;
 
 		inset: 0;
 
-		z-index: 85;
-
-		width: 100vw;
-		height: 100vh;
+		z-index: 900;
 
 		pointer-events: none;
 
-		mix-blend-mode: screen;
+		overflow: hidden;
+
+		--x: 50vw;
+		--y: 50vh;
+
+		--dx: 0px;
+		--dy: 0px;
+
+		--field-x: 0px;
+		--field-y: 0px;
+
+		--strength: 0.5;
+		--velocity: 0;
+		--idle: 0.5;
+	}
+
+	/* =====================================================
+	   BLOOM
+	   ===================================================== */
+
+	.cursor-bloom {
+		position: absolute;
+
+		left: var(--x);
+		top: var(--y);
+
+		width: 220px;
+		height: 220px;
+
+		transform:
+			translate(-50%, -50%)
+			scale(
+				calc(
+					0.92 +
+					var(--strength) * 0.1
+				)
+			);
+
+		border-radius: 50%;
+
+		background:
+			radial-gradient(
+				circle,
+				rgba(
+					255,
+					0,
+					128,
+					0.11
+				),
+				rgba(
+					255,
+					0,
+					128,
+					0.025
+				) 38%,
+				transparent 72%
+			);
+
+		filter:
+			blur(10px);
+
+		mix-blend-mode:
+			screen;
+
+		opacity:
+			calc(
+				0.6 +
+				var(--idle) * 0.12
+			);
+	}
+
+
+	/* =====================================================
+	   MOVING HALFTONE
+
+	   The field is deliberately translated using BOTH
+	   persistent cursor position and instantaneous
+	   velocity. Therefore it keeps moving when the mouse
+	   stops instead of freezing.
+	   ===================================================== */
+
+	.cursor-halftone {
+		position: absolute;
+
+		left: var(--x);
+		top: var(--y);
+
+		width: 310px;
+		height: 310px;
+
+		transform:
+			translate(-50%, -50%)
+			translate(
+				calc(
+					var(--field-x) * 1.8 +
+					var(--dx) * 5
+				),
+				calc(
+					var(--field-y) * 1.8 +
+					var(--dy) * 5
+				)
+			);
+
+		background-image:
+			radial-gradient(
+				circle,
+				rgba(
+					255,
+					0,
+					128,
+					0.32
+				)
+				1px,
+				transparent 1.55px
+			);
+
+		background-size:
+			6px 6px;
+
+		background-position:
+			calc(
+				var(--field-x) * 2 +
+				var(--dx) * 8
+			)
+			calc(
+				var(--field-y) * 2 +
+				var(--dy) * 8
+			);
+
+		mask-image:
+			radial-gradient(
+				circle,
+				black 0%,
+				rgba(
+					0,
+					0,
+					0,
+					0.85
+				) 25%,
+				rgba(
+					0,
+					0,
+					0,
+					0.46
+				) 52%,
+				transparent 76%
+			);
+
+		-webkit-mask-image:
+			radial-gradient(
+				circle,
+				black 0%,
+				rgba(
+					0,
+					0,
+					0,
+					0.85
+				) 25%,
+				rgba(
+					0,
+					0,
+					0,
+					0.46
+				) 52%,
+				transparent 76%
+			);
+
+		opacity:
+			calc(
+				0.2 +
+				var(--strength) * 0.22
+			);
+
+		mix-blend-mode:
+			screen;
+
+		transition:
+			background-position
+			35ms linear;
+	}
+
+
+	/* =====================================================
+	   SCOPE
+	   ===================================================== */
+
+	.cursor-scope {
+		position: absolute;
+
+		left: var(--x);
+		top: var(--y);
+
+		width:
+			calc(
+				54px +
+				var(--strength) * 8px
+			);
+
+		height:
+			calc(
+				54px +
+				var(--strength) * 8px
+			);
+
+		transform:
+			translate(-50%, -50%)
+			translate(
+				calc(var(--dx) * 0.65),
+				calc(var(--dy) * 0.65)
+			)
+			scale(
+				calc(
+					0.96 +
+					var(--strength) * 0.08
+				)
+			);
+
+		opacity:
+			calc(
+				0.25 +
+				var(--strength) * 0.32
+			);
+	}
+
+	.scope-ring {
+		position: absolute;
+
+		left: 50%;
+		top: 50%;
+
+		border:
+			1px solid
+			rgba(
+				255,
+				0,
+				128,
+				0.65
+			);
+
+		border-radius: 50%;
+
+		transform:
+			translate(
+				-50%,
+				-50%
+			);
+	}
+
+	.scope-ring.outer {
+		width: 100%;
+		height: 100%;
+	}
+
+	.scope-ring.middle {
+		width: 65%;
+		height: 65%;
+
+		opacity: 0.5;
+	}
+
+	.scope-ring.inner {
+		width: 30%;
+		height: 30%;
+	}
+
+	.scope-axis {
+		position: absolute;
+
+		background:
+			rgba(
+				255,
+				0,
+				128,
+				0.62
+			);
+	}
+
+	.scope-axis.horizontal {
+		left: -9px;
+		right: -9px;
+
+		top: 50%;
+
+		height: 1px;
+	}
+
+	.scope-axis.vertical {
+		top: -9px;
+		bottom: -9px;
+
+		left: 50%;
+
+		width: 1px;
+	}
+
+	.scope-node {
+		position: absolute;
+
+		width: 4px;
+		height: 4px;
+
+		border-radius: 50%;
+
+		background:
+			#ff0080;
+	}
+
+	.scope-node.top {
+		left: 50%;
+		top: -2px;
+
+		transform:
+			translateX(-50%);
+	}
+
+	.scope-node.right {
+		right: -2px;
+		top: 50%;
+
+		transform:
+			translateY(-50%);
+	}
+
+	.scope-node.bottom {
+		left: 50%;
+		bottom: -2px;
+
+		transform:
+			translateX(-50%);
+	}
+
+	.scope-node.left {
+		left: -2px;
+		top: 50%;
+
+		transform:
+			translateY(-50%);
+	}
+
+
+	/* =====================================================
+	   GLITCH FRAGMENTS
+	   ===================================================== */
+
+	.cursor-fragments {
+		position: absolute;
+
+		left: var(--x);
+		top: var(--y);
+
+		width: 108px;
+		height: 74px;
+
+		transform:
+			translate(-50%, -50%)
+			translate(
+				calc(
+					var(--dx) * 1.2
+				),
+				calc(
+					var(--dy) * 1.2
+				)
+			);
+
+		opacity:
+			calc(
+				0.18 +
+				var(--velocity) * 0.58 +
+				var(--idle) * 0.05
+			);
+	}
+
+	.fragment {
+		position: absolute;
+
+		display: block;
+
+		height: 1px;
+
+		background:
+			#ff0080;
+
+		box-shadow:
+			0 0 5px
+			rgba(
+				255,
+				0,
+				128,
+				0.5
+			);
+
+		animation:
+			fragment-glitch
+			1.2s
+			steps(5, end)
+			infinite;
+	}
+
+	.f1 {
+		left: 3px;
+		top: 8px;
+
+		width: 26px;
+	}
+
+	.f2 {
+		right: 1px;
+		top: 19px;
+
+		width: 15px;
+
+		animation-delay:
+			0.1s;
+	}
+
+	.f3 {
+		left: 12px;
+		top: 32px;
+
+		width: 18px;
+
+		animation-delay:
+			0.2s;
+	}
+
+	.f4 {
+		right: 8px;
+		top: 44px;
+
+		width: 28px;
+
+		animation-delay:
+			0.3s;
+	}
+
+	.f5 {
+		left: 5px;
+		bottom: 8px;
+
+		width: 21px;
+
+		animation-delay:
+			0.4s;
+	}
+
+	.f6 {
+		right: 5px;
+		bottom: 3px;
+
+		width: 14px;
+
+		animation-delay:
+			0.5s;
+	}
+
+	@keyframes fragment-glitch {
+		0%,
+		100% {
+			opacity: 0.3;
+
+			transform:
+				translateX(0);
+		}
+
+		16% {
+			opacity: 0.95;
+
+			transform:
+				translateX(3px);
+		}
+
+		31% {
+			opacity: 0.18;
+
+			transform:
+				translateX(-3px);
+		}
+
+		48% {
+			opacity: 0.8;
+
+			transform:
+				translateX(4px);
+		}
+
+		65% {
+			opacity: 0.25;
+
+			transform:
+				translateX(-2px);
+		}
+
+		82% {
+			opacity: 0.9;
+
+			transform:
+				translateX(2px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.cursor-hud {
+			display: none;
+		}
 	}
 </style>

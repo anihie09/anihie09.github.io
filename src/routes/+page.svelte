@@ -3,214 +3,382 @@
 </script>
 
 <svelte:head>
-	<title>ANIHIE — Mechanical Engineering</title>
+	<title>ANI — Mechanical Engineering</title>
 
 	<meta
 		name="description"
-		content="ANIHIE — Mechanical Engineering Portfolio"
+		content="ANI — Mechanical Engineering portfolio"
 	/>
 </svelte:head>
 
-<div class="home">
-	<div class="background"></div>
+<div class="home-page">
 
-	<div class="background-shade"></div>
+	<!-- =================================================
+	     INTERACTIVE HOMEPAGE BACKGROUND
+	     ================================================= -->
 
-	<InteractiveAscii />
+	<div class="home-background">
+		<InteractiveAscii
+			src="/home-background.png"
+			alt="Interactive homepage background"
+			characters=" .:-=+*#%@"
+			color="#ff0080"
+			background="#000000"
+			cellSize={6}
+			cursorRadius={155}
+			zoom={1.12}
+			noiseInterval={100}
+			opacity={0.9}
+		/>
+	</div>
 
-	<div class="interface">
-		<!-- RIGHT-SIDE NAVIGATION -->
 
-		<nav
-			class="navigation"
-			aria-label="Main navigation"
+	<!-- =================================================
+	     DARK FADE
+
+	     Keeps the background atmospheric while allowing
+	     the navigation to remain readable.
+	     ================================================= -->
+
+	<div
+		class="background-fade"
+		aria-hidden="true"
+	></div>
+
+
+	<!-- =================================================
+	     LEFT SYSTEM INFORMATION
+	     ================================================= -->
+
+	<section
+		class="system-info"
+		aria-label="Profile information"
+	>
+
+		<div class="system-title">
+			SYSTEMS UPDATING
+			<span class="blink-dots">...</span>
+		</div>
+
+		<div class="system-lines">
+			<div>
+				University of Southern California
+			</div>
+
+			<div>
+				Mechanical Engineering
+			</div>
+
+			<div>
+				Vietnamese American
+			</div>
+		</div>
+
+	</section>
+
+
+	<!-- =================================================
+	     MAIN PERSON / PROFILE AREA
+
+	     This frame gives the homepage the same visual
+	     relationship it had before the InteractiveAscii
+	     change.
+	     ================================================= -->
+
+	<section class="profile-frame">
+
+		<div class="profile-label">
+			// ANI_LE v1
+		</div>
+
+		<div class="profile-top"></div>
+		<div class="profile-left"></div>
+		<div class="profile-right"></div>
+		<div class="profile-bottom"></div>
+
+		<div
+			class="profile-target"
+			aria-hidden="true"
 		>
-			<a href="/about">
-				<span class="nav-index">
-					01
-				</span>
+			<div></div>
+		</div>
 
-				<span class="arrow">
-					&gt;
-				</span>
+	</section>
 
-				<span class="label">
-					ABOUT
-				</span>
 
-				<span class="nav-line"></span>
-			</a>
+	<!-- =================================================
+	     RIGHT NAVIGATION
 
-			<a href="/projects">
-				<span class="nav-index">
-					02
-				</span>
+	     RESTORED FROM THE PREVIOUS HOMEPAGE DESIGN.
+	     ================================================= -->
 
-				<span class="arrow">
-					&gt;
-				</span>
+	<nav
+		class="navigation-panel"
+		aria-label="Main navigation"
+	>
 
-				<span class="label">
-					PROJECTS
-				</span>
+		<div class="directory">
 
-				<span class="nav-line"></span>
-			</a>
-
-			<a href="/contact">
-				<span class="nav-index">
-					03
-				</span>
-
-				<span class="arrow">
-					&gt;
-				</span>
-
-				<span class="label">
-					CONTACT
-				</span>
-
-				<span class="nav-line"></span>
-			</a>
-		</nav>
-
-		<!-- RIGHT-SIDE DATA -->
-
-		<div class="navigation-data">
-			<div class="data-title">
+			<div class="directory-title">
 				DIRECTORY
 			</div>
 
-			<div class="data-rule"></div>
+			<div class="directory-line"></div>
 
-			<div class="data-row">
-				<span>SYS</span>
-				<span>ACTIVE</span>
+			<div class="directory-status">
+
+				<span>
+					SYS
+				</span>
+
+				<strong>
+					ACTIVE
+				</strong>
+
 			</div>
 
-			<div class="data-row">
-				<span>MODE</span>
-				<span>01</span>
+			<div class="directory-status">
+
+				<span>
+					MODE
+				</span>
+
+				<strong>
+					01
+				</strong>
+
 			</div>
 
-			<div class="data-row">
-				<span>LINK</span>
-				<span>ONLINE</span>
+			<div class="directory-status">
+
+				<span>
+					LINK
+				</span>
+
+				<strong>
+					ONLINE
+				</strong>
+
 			</div>
+
 		</div>
 
-		<!-- CENTER TECHNICAL MARK -->
 
-		<div class="center-marker">
-			<div class="marker-horizontal"></div>
-			<div class="marker-vertical"></div>
+		<div class="navigation-list">
 
-			<div class="marker-ring outer"></div>
-			<div class="marker-ring inner"></div>
+			<a
+				class="navigation-link"
+				href="/about"
+			>
+				<span class="navigation-number">
+					01
+				</span>
 
-			<div class="marker-dot"></div>
+				<span class="navigation-name">
+					ABOUT
+				</span>
+
+				<span
+					class="navigation-arrow"
+					aria-hidden="true"
+				>
+					&gt;
+				</span>
+			</a>
+
+
+			<a
+				class="navigation-link"
+				href="/projects"
+			>
+				<span class="navigation-number">
+					02
+				</span>
+
+				<span class="navigation-name">
+					PROJECTS
+				</span>
+
+				<span
+					class="navigation-arrow"
+					aria-hidden="true"
+				>
+					&gt;
+				</span>
+			</a>
+
+
+			<a
+				class="navigation-link"
+				href="/contact"
+			>
+				<span class="navigation-number">
+					03
+				</span>
+
+				<span class="navigation-name">
+					CONTACT
+				</span>
+
+				<span
+					class="navigation-arrow"
+					aria-hidden="true"
+				>
+					&gt;
+				</span>
+			</a>
+
 		</div>
+
+	</nav>
+
+
+	<!-- =================================================
+	     DECORATIVE SIDE TARGETS
+	     ================================================= -->
+
+	<div
+		class="side-target target-left"
+		aria-hidden="true"
+	>
+		<div class="target-ring ring-1"></div>
+		<div class="target-ring ring-2"></div>
+		<div class="target-ring ring-3"></div>
+		<div class="target-cross horizontal"></div>
+		<div class="target-cross vertical"></div>
+		<div class="target-dot"></div>
 	</div>
+
+
+	<div
+		class="side-target target-right"
+		aria-hidden="true"
+	>
+		<div class="target-ring ring-1"></div>
+		<div class="target-ring ring-2"></div>
+		<div class="target-ring ring-3"></div>
+		<div class="target-cross horizontal"></div>
+		<div class="target-cross vertical"></div>
+		<div class="target-dot"></div>
+	</div>
+
+
+	<!-- =================================================
+	     BOTTOM STATUS
+	     ================================================= -->
+
+	<div class="bottom-status left-status">
+
+		<div class="status-title">
+			CORE / 02
+		</div>
+
+		<div class="status-bars">
+			<span></span>
+			<span></span>
+			<span></span>
+			<span></span>
+			<span></span>
+			<span></span>
+		</div>
+
+		<div class="status-text">
+			SYSTEM READY
+		</div>
+
+	</div>
+
+
+	<div class="bottom-status right-status">
+
+		<div class="status-title">
+			STATUS
+		</div>
+
+		<div class="status-text">
+			01-09 / ACTIVE
+		</div>
+
+		<div class="status-bars">
+			<span></span>
+			<span></span>
+			<span></span>
+			<span></span>
+			<span></span>
+		</div>
+
+	</div>
+
+
+	<!-- =================================================
+	     BOTTOM CENTER LINK
+	     ================================================= -->
+
+	<div class="bottom-link">
+
+		<div class="bottom-link-line"></div>
+
+		<div class="bottom-link-node node-left"></div>
+		<div class="bottom-link-node node-center"></div>
+		<div class="bottom-link-node node-right"></div>
+
+		<div class="bottom-link-text">
+			LINK ESTABLISHED
+		</div>
+
+	</div>
+
 </div>
+
 
 <style>
 	/* =====================================================
-	   SHARED HUD COLOR
+	   PAGE
 	   ===================================================== */
 
-	:global(:root) {
-		--hud-pink: #ff0080;
-
-		--hud-pink-soft:
-			rgba(
-				255,
-				0,
-				128,
-				0.55
-			);
-
-		--hud-pink-faint:
-			rgba(
-				255,
-				0,
-				128,
-				0.2
-			);
-	}
-
-	/* =====================================================
-	   GLOBAL
-	   ===================================================== */
-
-	:global(html),
-	:global(body) {
-		margin: 0;
-		padding: 0;
-
-		width: 100%;
-		min-height: 100%;
-
-		background: #000;
-	}
-
-	:global(body) {
-		overflow: hidden;
-	}
-
-	:global(*) {
-		box-sizing: border-box;
-	}
-
-	/* =====================================================
-	   HOME
-	   ===================================================== */
-
-	.home {
+	.home-page {
 		position: relative;
 
 		width: 100vw;
 		height: 100vh;
 
-		min-height: 650px;
+		min-height: 100vh;
 
 		overflow: hidden;
 
-		background: #000;
+		background:
+			#000;
+
+		color:
+			#fff;
+
+		font-family:
+			'Courier New',
+			Courier,
+			monospace;
 	}
+
 
 	/* =====================================================
 	   BACKGROUND
 	   ===================================================== */
 
-	.background {
-		position: absolute;
-
-		inset: 0;
-
-		z-index: 0;
-
-		background-image:
-			url('/home-background.png');
-
-		background-repeat:
-			no-repeat;
-
-		background-position:
-			center center;
-
-		background-size:
-			cover;
-
-		background-color:
-			#000;
-	}
-
-	.background-shade {
+	.home-background {
 		position: absolute;
 
 		inset: 0;
 
 		z-index: 1;
+
+		overflow: hidden;
+	}
+
+	.background-fade {
+		position: absolute;
+
+		inset: 0;
+
+		z-index: 2;
 
 		pointer-events: none;
 
@@ -221,25 +389,15 @@
 					0,
 					0,
 					0,
-					0.04
-				)
-				0%,
-				transparent
-				38%,
+					0.2
+				),
+				transparent 36%,
 				rgba(
 					0,
 					0,
 					0,
-					0.08
+					0.24
 				)
-				65%,
-				rgba(
-					0,
-					0,
-					0,
-					0.45
-				)
-				100%
 			),
 			linear-gradient(
 				180deg,
@@ -247,287 +405,209 @@
 					0,
 					0,
 					0,
-					0.06
+					0.2
 				),
-				transparent 58%,
+				transparent 25%,
 				rgba(
 					0,
 					0,
 					0,
-					0.14
+					0.22
 				)
-				100%
 			);
 	}
 
-	/* =====================================================
-	   INTERFACE
-	   ===================================================== */
-
-	.interface {
-		position: relative;
-
-		z-index: 10;
-
-		width: 100%;
-		height: 100%;
-
-		pointer-events: none;
-	}
 
 	/* =====================================================
-	   RIGHT NAVIGATION
+	   SYSTEM INFO
 	   ===================================================== */
 
-	.navigation {
+	.system-info {
 		position: absolute;
 
-		right: 8.7%;
-		top: 43%;
+		left: 2.7%;
+		top: 5.5%;
 
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-
-		gap: 18px;
-
-		width: 210px;
-
-		pointer-events: auto;
-	}
-
-	.navigation a {
-		position: relative;
-
-		display: grid;
-
-		grid-template-columns:
-			28px
-			20px
-			auto;
-
-		align-items: center;
-
-		width: 100%;
-
-		min-height: 26px;
+		z-index: 20;
 
 		color:
-			var(--hud-pink);
-
-		font-family:
-			'Courier New',
-			Courier,
-			monospace;
+			rgba(
+				255,
+				255,
+				255,
+				0.86
+			);
 
 		font-size:
 			clamp(
-				11px,
-				0.82vw,
-				15px
+				8px,
+				0.72vw,
+				12px
 			);
 
-		font-weight: 600;
+		line-height:
+			1.7;
 
-		letter-spacing: 0.08em;
-
-		text-decoration: none;
+		letter-spacing:
+			0.03em;
 
 		text-shadow:
-			0 2px 5px
+			0 0 8px
 			rgba(
+				255,
 				0,
-				0,
-				0,
-				0.95
+				128,
+				0.08
 			);
-
-		cursor: pointer;
-
-		transition:
-			color
-			120ms
-			ease;
 	}
 
-	.nav-index {
+	.system-title {
 		color:
-			var(--hud-pink-soft);
+			#fff;
 
-		font-size: 7px;
+		margin-bottom:
+			4px;
 
-		letter-spacing: 0.12em;
+		letter-spacing:
+			0.05em;
 	}
 
-	.arrow {
-		color: #fff;
+	.blink-dots {
+		display:
+			inline-block;
 
-		width: 0;
+		width: 22px;
+
+		color:
+			#fff;
 
 		overflow: hidden;
 
-		opacity: 0;
-
-		transform:
-			translateX(-7px);
-
-		transition:
-			width
-			140ms
-			ease,
-			opacity
-			100ms
-			linear,
-			transform
-			140ms
-			ease;
-	}
-
-	.label {
-		white-space: nowrap;
-	}
-
-	.nav-line {
-		position: absolute;
-
-		left: 0;
-		bottom: -7px;
-
-		width: 0;
-		height: 1px;
-
-		background:
-			var(--hud-pink);
-
-		opacity: 0.36;
-
-		transition:
-			width
-			180ms
-			ease;
-	}
-
-	.navigation a:hover,
-	.navigation a:focus-visible {
-		color:
-			var(--hud-pink);
-
-		outline: none;
-
 		animation:
-			nav-glitch
-			270ms
-			steps(2, end)
-			1;
+			system-dots
+			1.2s
+			steps(4, end)
+			infinite;
 	}
 
-	.navigation a:hover .arrow,
-	.navigation a:focus-visible .arrow {
-		width: 17px;
-
-		opacity: 1;
-
-		transform:
-			translateX(0);
-	}
-
-	.navigation a:hover .nav-line,
-	.navigation a:focus-visible .nav-line {
-		width: 100%;
-	}
-
-	.navigation a:hover .nav-index,
-	.navigation a:focus-visible .nav-index {
-		color:
-			var(--hud-pink);
-	}
 
 	/* =====================================================
-	   RIGHT-SIDE DATA
+	   PROFILE FRAME
 	   ===================================================== */
 
-	.navigation-data {
+	.profile-frame {
 		position: absolute;
 
-		right: 8.7%;
-		top: 30%;
+		left: 48.5%;
+		top: 17%;
 
-		width: 210px;
+		width: 28%;
+		height: 49%;
 
-		padding:
-			10px 12px;
+		z-index: 12;
 
-		border-left:
-			1px solid
-			var(--hud-pink-soft);
+		pointer-events:
+			none;
 
-		border-top:
+		border:
 			1px solid
 			rgba(
 				255,
 				0,
 				128,
-				0.2
+				0.7
 			);
 
-		color:
-			var(--hud-pink-soft);
+		transform:
+			translateX(-50%);
 
-		font-family:
-			'Courier New',
-			Courier,
-			monospace;
-
-		pointer-events: none;
-
-		animation:
-			data-idle
-			5.4s
-			steps(3, end)
-			infinite;
+		opacity:
+			0.95;
 	}
 
-	.data-title {
-		font-size: 7px;
-
-		letter-spacing:
-			0.18em;
-	}
-
-	.data-rule {
-		width: 100%;
-		height: 1px;
-
-		margin:
-			7px 0;
-
-		background:
-			var(--hud-pink-soft);
-	}
-
-	.data-row {
-		display: flex;
-
-		justify-content:
-			space-between;
-
-		margin-top: 4px;
-
-		font-size: 6px;
-
-		letter-spacing:
-			0.08em;
-	}
-
-	/* =====================================================
-	   CENTER MARKER
-	   ===================================================== */
-
-	.center-marker {
+	.profile-label {
 		position: absolute;
 
-		left: 52%;
-		top: 47%;
+		left: 0;
+		top: -38px;
+
+		padding:
+			9px 17px;
+
+		background:
+			#ff0080;
+
+		color:
+			#000;
+
+		font-size:
+			clamp(
+				8px,
+				0.8vw,
+				12px
+			);
+
+		font-weight:
+			700;
+
+		letter-spacing:
+			0.05em;
+	}
+
+	.profile-top,
+	.profile-bottom,
+	.profile-left,
+	.profile-right {
+		position: absolute;
+
+		background:
+			#ff0080;
+
+		opacity:
+			0.7;
+	}
+
+	.profile-top {
+		left: 0;
+		right: 0;
+
+		top: 0;
+
+		height: 1px;
+	}
+
+	.profile-bottom {
+		left: 0;
+		right: 0;
+
+		bottom: 0;
+
+		height: 1px;
+	}
+
+	.profile-left {
+		top: 0;
+		bottom: 0;
+
+		left: 0;
+
+		width: 1px;
+	}
+
+	.profile-right {
+		top: 0;
+		bottom: 0;
+
+		right: 0;
+
+		width: 1px;
+	}
+
+	.profile-target {
+		position: absolute;
+
+		left: 50%;
+		top: 51%;
 
 		width: 52px;
 		height: 52px;
@@ -538,44 +618,357 @@
 				-50%
 			);
 
-		opacity: 0.16;
+		border:
+			1px solid
+			rgba(
+				255,
+				0,
+				128,
+				0.45
+			);
 
-		animation:
-			center-idle
-			4.8s
-			ease-in-out
-			infinite;
+		border-radius: 50%;
 	}
 
-	.marker-horizontal {
+	.profile-target::before,
+	.profile-target::after {
+		content: '';
+
 		position: absolute;
 
-		left: 0;
-		right: 0;
+		background:
+			rgba(
+				255,
+				0,
+				128,
+				0.45
+			);
+	}
+
+	.profile-target::before {
+		left: -10px;
+		right: -10px;
 
 		top: 50%;
 
 		height: 1px;
-
-		background:
-			var(--hud-pink);
 	}
 
-	.marker-vertical {
-		position: absolute;
-
-		top: 0;
-		bottom: 0;
+	.profile-target::after {
+		top: -10px;
+		bottom: -10px;
 
 		left: 50%;
 
 		width: 1px;
-
-		background:
-			var(--hud-pink);
 	}
 
-	.marker-ring {
+	.profile-target div {
+		position: absolute;
+
+		left: 50%;
+		top: 50%;
+
+		width: 16px;
+		height: 16px;
+
+		transform:
+			translate(
+				-50%,
+				-50%
+			);
+
+		border:
+			1px solid
+			rgba(
+				255,
+				0,
+				128,
+				0.65
+			);
+
+		border-radius: 50%;
+	}
+
+
+	/* =====================================================
+	   NAVIGATION PANEL
+	   ===================================================== */
+
+	.navigation-panel {
+		position: absolute;
+
+		right: 7.6%;
+		top: 29%;
+
+		z-index: 25;
+
+		width:
+			min(
+				230px,
+				18vw
+			);
+
+		color:
+			#ff0080;
+
+		font-family:
+			'Courier New',
+			Courier,
+			monospace;
+	}
+
+	.directory {
+		margin-bottom:
+			28px;
+
+		padding:
+			0 10px 15px;
+
+		border:
+			1px solid
+			rgba(
+				255,
+				0,
+				128,
+				0.42
+			);
+
+		background:
+			rgba(
+				0,
+				0,
+				0,
+				0.24
+			);
+	}
+
+	.directory-title {
+		padding:
+			11px 0 7px;
+
+		font-size: 7px;
+
+		letter-spacing:
+			0.16em;
+	}
+
+	.directory-line {
+		width: 100%;
+		height: 1px;
+
+		background:
+			rgba(
+				255,
+				0,
+				128,
+				0.5
+			);
+
+		margin-bottom:
+			10px;
+	}
+
+	.directory-status {
+		display:
+			flex;
+
+		justify-content:
+			space-between;
+
+		margin-top:
+			5px;
+
+		font-size: 5px;
+
+		letter-spacing:
+			0.08em;
+
+		color:
+			rgba(
+				255,
+				0,
+				128,
+				0.68
+			);
+	}
+
+	.navigation-list {
+		display:
+			flex;
+
+		flex-direction:
+			column;
+
+		gap:
+			22px;
+	}
+
+	.navigation-link {
+		position: relative;
+
+		display:
+			grid;
+
+		grid-template-columns:
+			30px
+			1fr
+			15px;
+
+		align-items:
+			center;
+
+		gap:
+			8px;
+
+		padding:
+			5px 0;
+
+		color:
+			#ff0080;
+
+		text-decoration:
+			none;
+
+		transition:
+			transform
+			180ms
+			cubic-bezier(
+				0.22,
+				1,
+				0.36,
+				1
+			),
+			text-shadow
+			180ms ease;
+	}
+
+	.navigation-number {
+		font-size: 5px;
+
+		color:
+			rgba(
+				255,
+				0,
+				128,
+				0.5
+			);
+	}
+
+	.navigation-name {
+		font-size:
+			clamp(
+				10px,
+				0.95vw,
+				15px
+			);
+
+		font-weight:
+			500;
+
+		letter-spacing:
+			0.05em;
+	}
+
+	.navigation-arrow {
+		font-size: 10px;
+
+		opacity: 0;
+
+		transform:
+			translateX(-5px);
+
+		transition:
+			opacity
+			160ms ease,
+			transform
+			160ms ease;
+	}
+
+	.navigation-link::before {
+		content: '';
+
+		position: absolute;
+
+		left: -12px;
+
+		top: 50%;
+
+		width: 2px;
+		height: 0;
+
+		background:
+			#ff0080;
+
+		transform:
+			translateY(-50%);
+
+		transition:
+			height
+			180ms ease;
+	}
+
+	.navigation-link:hover,
+	.navigation-link:focus-visible {
+		transform:
+			translateX(7px);
+
+		text-shadow:
+			0 0 8px
+			rgba(
+				255,
+				0,
+				128,
+				0.55
+			);
+
+		outline:
+			none;
+	}
+
+	.navigation-link:hover::before,
+	.navigation-link:focus-visible::before {
+		height: 18px;
+	}
+
+	.navigation-link:hover
+		.navigation-arrow,
+	.navigation-link:focus-visible
+		.navigation-arrow {
+		opacity: 1;
+
+		transform:
+			translateX(0);
+	}
+
+
+	/* =====================================================
+	   SIDE TARGETS
+	   ===================================================== */
+
+	.side-target {
+		position: absolute;
+
+		top: 47%;
+
+		width: 90px;
+		height: 90px;
+
+		z-index: 10;
+
+		opacity:
+			0.45;
+	}
+
+	.target-left {
+		left: 4%;
+	}
+
+	.target-right {
+		right: 4%;
+	}
+
+	.target-ring {
 		position: absolute;
 
 		left: 50%;
@@ -583,7 +976,12 @@
 
 		border:
 			1px solid
-			var(--hud-pink);
+			rgba(
+				255,
+				0,
+				128,
+				0.52
+			);
 
 		border-radius: 50%;
 
@@ -594,237 +992,364 @@
 			);
 	}
 
-	.marker-ring.outer {
-		width: 42px;
-		height: 42px;
+	.ring-1 {
+		width: 85px;
+		height: 85px;
 	}
 
-	.marker-ring.inner {
-		width: 17px;
-		height: 17px;
+	.ring-2 {
+		width: 58px;
+		height: 58px;
 	}
 
-	.marker-dot {
+	.ring-3 {
+		width: 25px;
+		height: 25px;
+	}
+
+	.target-cross {
+		position: absolute;
+
+		background:
+			rgba(
+				255,
+				0,
+				128,
+				0.5
+			);
+	}
+
+	.target-cross.horizontal {
+		left: 0;
+		right: 0;
+
+		top: 50%;
+
+		height: 1px;
+	}
+
+	.target-cross.vertical {
+		top: 0;
+		bottom: 0;
+
+		left: 50%;
+
+		width: 1px;
+	}
+
+	.target-dot {
+		position: absolute;
+
+		left: 69%;
+		top: 30%;
+
+		width: 4px;
+		height: 4px;
+
+		border-radius: 50%;
+
+		background:
+			#ff0080;
+	}
+
+
+	/* =====================================================
+	   BOTTOM STATUS
+	   ===================================================== */
+
+	.bottom-status {
+		position: absolute;
+
+		bottom: 31px;
+
+		z-index: 20;
+
+		font-size: 5px;
+
+		color:
+			rgba(
+				255,
+				0,
+				128,
+				0.58
+			);
+	}
+
+	.left-status {
+		left: 3.5%;
+	}
+
+	.right-status {
+		right: 4%;
+	}
+
+	.status-title {
+		margin-bottom:
+			7px;
+
+		letter-spacing:
+			0.14em;
+	}
+
+	.status-text {
+		margin-top:
+			7px;
+	}
+
+	.status-bars {
+		display:
+			flex;
+
+		gap: 4px;
+	}
+
+	.status-bars span {
+		width: 18px;
+		height: 4px;
+
+		background:
+			rgba(
+				255,
+				0,
+				128,
+				0.5
+			);
+
+		animation:
+			status-bars
+			1.7s
+			steps(4, end)
+			infinite;
+	}
+
+
+	/* =====================================================
+	   BOTTOM CENTER
+	   ===================================================== */
+
+	.bottom-link {
 		position: absolute;
 
 		left: 50%;
-		top: 50%;
+		bottom: 21px;
 
-		width: 3px;
-		height: 3px;
+		width: 380px;
+		height: 30px;
 
-		background:
-			var(--hud-pink);
-
-		border-radius: 50%;
+		z-index: 20;
 
 		transform:
-			translate(
-				-50%,
-				-50%
+			translateX(-50%);
+
+		color:
+			rgba(
+				255,
+				0,
+				128,
+				0.55
 			);
 	}
 
+	.bottom-link-line {
+		position: absolute;
+
+		left: 0;
+		right: 0;
+
+		top: 3px;
+
+		height: 1px;
+
+		background:
+			rgba(
+				255,
+				0,
+				128,
+				0.42
+			);
+	}
+
+	.bottom-link-node {
+		position: absolute;
+
+		top: 0;
+
+		width: 7px;
+		height: 7px;
+
+		border:
+			1px solid
+			#ff0080;
+
+		border-radius: 50%;
+
+		background:
+			#000;
+	}
+
+	.bottom-link-node.node-left {
+		left: 0;
+	}
+
+	.bottom-link-node.node-center {
+		left: 50%;
+
+		transform:
+			translateX(-50%);
+	}
+
+	.bottom-link-node.node-right {
+		right: 0;
+	}
+
+	.bottom-link-text {
+		position: absolute;
+
+		left: 50%;
+		bottom: 0;
+
+		transform:
+			translateX(-50%);
+
+		font-size: 4px;
+
+		letter-spacing:
+			0.18em;
+	}
+
+
 	/* =====================================================
-	   NAVIGATION GLITCH
+	   ANIMATIONS
 	   ===================================================== */
 
-	@keyframes nav-glitch {
+	@keyframes system-dots {
 		0% {
-			transform:
-				translate(
-					0,
-					0
-				);
+			width: 3px;
 		}
 
-		20% {
-			transform:
-				translate(
-					-2px,
-					0
-				);
-
-			text-shadow:
-				2px 0
-				rgba(
-					255,
-					0,
-					128,
-					0.72
-				);
-		}
-
-		40% {
-			transform:
-				translate(
-					2px,
-					-1px
-				);
-
-			text-shadow:
-				-2px 0
-				rgba(
-					255,
-					255,
-					255,
-					0.35
-				);
-		}
-
-		60% {
-			transform:
-				translate(
-					-1px,
-					1px
-				);
-		}
-
-		80% {
-			transform:
-				translate(
-					1px,
-					0
-				);
-		}
-
-		100% {
-			transform:
-				translate(
-					0,
-					0
-				);
-		}
-	}
-
-	@keyframes data-idle {
-		0%,
-		84%,
-		100% {
-			opacity: 0.72;
-
-			transform:
-				translate(
-					0,
-					0
-				);
-		}
-
-		86% {
-			opacity: 0.38;
-
-			transform:
-				translateX(-2px);
-		}
-
-		88% {
-			opacity: 0.94;
-
-			transform:
-				translateX(2px);
-		}
-
-		90% {
-			opacity: 0.55;
-
-			transform:
-				translateX(-1px);
-		}
-
-		92% {
-			opacity: 0.72;
-
-			transform:
-				translate(
-					0,
-					0
-				);
-		}
-	}
-
-	@keyframes center-idle {
-		0%,
-		100% {
-			opacity: 0.12;
-
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(0.96);
+		25% {
+			width: 7px;
 		}
 
 		50% {
-			opacity: 0.25;
+			width: 12px;
+		}
 
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(1.04);
+		75% {
+			width: 17px;
+		}
+
+		100% {
+			width: 22px;
 		}
 	}
+
+	@keyframes status-bars {
+		0%,
+		70%,
+		100% {
+			opacity:
+				0.45;
+
+			transform:
+				scaleX(1);
+		}
+
+		76% {
+			opacity:
+				0.1;
+
+			transform:
+				scaleX(0.65);
+		}
+
+		83% {
+			opacity:
+				0.95;
+
+			transform:
+				scaleX(1.08);
+		}
+	}
+
 
 	/* =====================================================
 	   RESPONSIVE
 	   ===================================================== */
 
-	@media (max-width: 1100px) {
-		.navigation,
-		.navigation-data {
-			right: 6%;
+	@media (max-width: 1000px) {
+		.navigation-panel {
+			right: 5%;
+		}
+
+		.profile-frame {
+			left: 47%;
+			width: 32%;
 		}
 	}
 
-	@media (max-width: 800px) {
-		.navigation {
-			right: 8%;
-			top: 46%;
-
-			width: 175px;
+	@media (max-width: 760px) {
+		.navigation-panel {
+			right: 5%;
+			top: auto;
+			bottom: 13%;
+			width: 190px;
 		}
 
-		.navigation-data {
-			right: 8%;
-			top: 32%;
-
-			width: 175px;
-		}
-
-		.center-marker {
+		.profile-frame {
 			left: 50%;
+			top: 18%;
+			width: 40%;
+			height: 40%;
+		}
+
+		.side-target {
+			opacity:
+				0.2;
+		}
+
+		.bottom-link {
+			width: 280px;
 		}
 	}
 
-	@media (max-width: 600px) {
-		.home {
-			min-height: 600px;
+	@media (max-width: 520px) {
+		.system-info {
+			left: 4%;
+			top: 8%;
 		}
 
-		.navigation {
-			right: 9%;
-			top: 43%;
-
-			width: 150px;
-
-			gap: 14px;
+		.navigation-panel {
+			right: 6%;
+			bottom: 10%;
+			width: 170px;
 		}
 
-		.navigation-data {
-			right: 9%;
-			top: 29%;
-
-			width: 150px;
+		.navigation-name {
+			font-size: 11px;
 		}
 
-		.navigation a {
-			font-size: 10px;
+		.profile-frame {
+			display: none;
 		}
 
-		.navigation-data {
-			padding: 8px;
+		.bottom-link {
+			width: 210px;
+		}
+
+		.side-target {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.blink-dots,
+		.status-bars span {
+			animation: none;
+		}
+
+		.navigation-link {
+			transition: none;
 		}
 	}
 </style>
