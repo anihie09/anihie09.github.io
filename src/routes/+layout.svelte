@@ -1,26 +1,25 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { onNavigate } from '$app/navigation';
+	import {
+		onNavigate,
+		afterNavigate
+	} from '$app/navigation';
 	import type { Snippet } from 'svelte';
 
-	let { children }: { children: Snippet } = $props();
+	import CursorHUD from '$lib/CursorHUD.svelte';
 
-	/* =====================================================
-	   BOOT STATE
-	   ===================================================== */
+	let { children }: { children: Snippet } = $props();
 
 	let booting = $state(true);
 	let bootExiting = $state(false);
 
-	/* =====================================================
-	   PAGE TRANSITION
-	   ===================================================== */
-
 	let transitioning = $state(false);
 	let transitionLeaving = $state(false);
 
+	let pendingPageTransition = false;
+
 	/* =====================================================
-	   INITIAL LOAD
+	   INITIAL BOOT
 	   ===================================================== */
 
 	onMount(() => {
@@ -39,7 +38,7 @@
 	});
 
 	/* =====================================================
-	   PAGE NAVIGATION
+	   PAGE TRANSITION
 	   ===================================================== */
 
 	onNavigate((navigation) => {
@@ -47,30 +46,30 @@
 			return;
 		}
 
+		pendingPageTransition = true;
 		transitioning = true;
 		transitionLeaving = false;
 
 		return new Promise<void>((resolve) => {
-			/*
-			 * Outgoing page distortion.
-			 */
-			window.setTimeout(() => {
-				resolve();
-
-				/*
-				 * Give the destination page time to render
-				 * underneath the transition.
-				 */
-				window.setTimeout(() => {
-					transitionLeaving = true;
-
-					window.setTimeout(() => {
-						transitioning = false;
-						transitionLeaving = false;
-					}, 820);
-				}, 820);
-			}, 460);
+			window.setTimeout(resolve, 500);
 		});
+	});
+
+	afterNavigate(() => {
+		if (!pendingPageTransition) {
+			return;
+		}
+
+		pendingPageTransition = false;
+
+		window.setTimeout(() => {
+			transitionLeaving = true;
+
+			window.setTimeout(() => {
+				transitioning = false;
+				transitionLeaving = false;
+			}, 820);
+		}, 70);
 	});
 </script>
 
@@ -84,73 +83,86 @@
 <div class="site">
 
 	<!-- =================================================
+	     GLOBAL CURSOR
+	     ================================================= -->
+
+	<CursorHUD />
+
+	<!-- =================================================
+	     GLOBAL HOME BUTTON
+	     ================================================= -->
+
+	<a
+		class="home-button"
+		href="/"
+		aria-label="Home"
+		title="Home"
+	>
+		<!-- Base signature -->
+		<span class="signature-layer signature-base">
+			<img
+				src="/signature.png"
+				alt="Anihie"
+			/>
+		</span>
+
+		<!-- Pink glitch duplicate -->
+		<span
+			class="signature-layer signature-pink"
+			aria-hidden="true"
+		>
+			<img
+				src="/signature.png"
+				alt=""
+			/>
+		</span>
+
+		<!-- White glitch duplicate -->
+		<span
+			class="signature-layer signature-white"
+			aria-hidden="true"
+		>
+			<img
+				src="/signature.png"
+				alt=""
+			/>
+		</span>
+
+		<!-- Scan line -->
+		<span
+			class="signature-scan"
+			aria-hidden="true"
+		></span>
+
+		<!-- Noise -->
+		<span
+			class="signature-noise"
+			aria-hidden="true"
+		></span>
+	</a>
+
+	<!-- =================================================
 	     PAGE CONTENT
 	     ================================================= -->
 
 	{@render children()}
 
 	<!-- =================================================
-	     GLOBAL SIGNATURE
-	     ================================================= -->
-
-	<a
-		class="signature"
-		href="/"
-		aria-label="Return to home"
-	>
-		<img
-			src="/signature.png"
-			alt="Anihie signature"
-		/>
-	</a>
-
-	<!-- =================================================
-	     GLOBAL CYBER HUD
+	     GLOBAL HUD
 	     ================================================= -->
 
 	<div
 		class="global-hud"
 		aria-hidden="true"
 	>
-		<!-- =============================================
-		     PRIMARY THIN BORDER
-		     ============================================= -->
+		<!-- BORDER -->
 
 		<div class="hud-border top"></div>
 		<div class="hud-border right"></div>
 		<div class="hud-border bottom"></div>
 		<div class="hud-border left"></div>
 
-		<!-- =============================================
-		     TOP LEFT SYSTEM MODULE
-		     ============================================= -->
-
-		<div class="edge-system top-left-system">
-			<div class="edge-system-title">
-				SYS / 01
-			</div>
-
-			<div class="edge-system-line"></div>
-
-			<div class="edge-system-data">
-				<span>LINK</span>
-				<span>ACTIVE</span>
-			</div>
-
-			<div class="edge-blocks">
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-			</div>
-		</div>
-
-		<!-- =============================================
-		     TOP CENTER CIRCUIT TRACE
-		     ============================================= -->
+		<!-- TOP SIGNAL -->
 
 		<div class="top-signal">
 			<div class="top-signal-line"></div>
@@ -171,9 +183,7 @@
 			</div>
 		</div>
 
-		<!-- =============================================
-		     TOP RIGHT SYSTEM
-		     ============================================= -->
+		<!-- TOP RIGHT SYSTEM -->
 
 		<div class="edge-system top-right-system">
 			<div class="system-box-title">
@@ -196,9 +206,7 @@
 			</div>
 		</div>
 
-		<!-- =============================================
-		     LEFT RADAR
-		     ============================================= -->
+		<!-- LEFT RADAR -->
 
 		<div class="edge-radar left-radar">
 			<div class="radar-circle outer"></div>
@@ -209,13 +217,10 @@
 			<div class="radar-cross vertical"></div>
 
 			<div class="radar-sweep"></div>
-
 			<div class="radar-point"></div>
 		</div>
 
-		<!-- =============================================
-		     RIGHT RADAR
-		     ============================================= -->
+		<!-- RIGHT RADAR -->
 
 		<div class="edge-radar right-radar">
 			<div class="radar-circle outer"></div>
@@ -226,25 +231,20 @@
 			<div class="radar-cross vertical"></div>
 
 			<div class="radar-sweep"></div>
-
 			<div class="radar-point"></div>
 		</div>
 
-		<!-- =============================================
-		     LEFT DATA RAIL
-		     ============================================= -->
+		<!-- LEFT RAIL -->
 
 		<div class="data-rail left-rail">
-			<div class="rail-number">
-				03
-			</div>
+			<div class="rail-number">03</div>
 
 			<div class="rail-track"></div>
 
-			<div class="rail-point p1"></div>
-			<div class="rail-point p2"></div>
-			<div class="rail-point p3"></div>
-			<div class="rail-point p4"></div>
+			<div class="rail-point"></div>
+			<div class="rail-point"></div>
+			<div class="rail-point"></div>
+			<div class="rail-point"></div>
 
 			<div class="rail-data">
 				<span>021</span>
@@ -253,21 +253,17 @@
 			</div>
 		</div>
 
-		<!-- =============================================
-		     RIGHT DATA RAIL
-		     ============================================= -->
+		<!-- RIGHT RAIL -->
 
 		<div class="data-rail right-rail">
-			<div class="rail-number">
-				08
-			</div>
+			<div class="rail-number">08</div>
 
 			<div class="rail-track"></div>
 
-			<div class="rail-point p1"></div>
-			<div class="rail-point p2"></div>
-			<div class="rail-point p3"></div>
-			<div class="rail-point p4"></div>
+			<div class="rail-point"></div>
+			<div class="rail-point"></div>
+			<div class="rail-point"></div>
+			<div class="rail-point"></div>
 
 			<div class="rail-data">
 				<span>042</span>
@@ -276,9 +272,7 @@
 			</div>
 		</div>
 
-		<!-- =============================================
-		     BOTTOM LEFT MODULE
-		     ============================================= -->
+		<!-- BOTTOM LEFT -->
 
 		<div class="bottom-module bottom-left-module">
 			<div class="module-heading">
@@ -304,9 +298,7 @@
 			</div>
 		</div>
 
-		<!-- =============================================
-		     BOTTOM CENTER STREAM
-		     ============================================= -->
+		<!-- BOTTOM STREAM -->
 
 		<div class="bottom-stream">
 			<div class="stream-rule"></div>
@@ -334,9 +326,7 @@
 			</div>
 		</div>
 
-		<!-- =============================================
-		     BOTTOM RIGHT MODULE
-		     ============================================= -->
+		<!-- BOTTOM RIGHT -->
 
 		<div class="bottom-module bottom-right-module">
 			<div class="module-heading">
@@ -357,9 +347,7 @@
 			</div>
 		</div>
 
-		<!-- =============================================
-		     BOTTOM CIRCUIT
-		     ============================================= -->
+		<!-- BOTTOM CIRCUIT -->
 
 		<div class="bottom-circuit">
 			<div class="bottom-circuit-main"></div>
@@ -373,9 +361,7 @@
 			<div class="bottom-circuit-point point-c"></div>
 		</div>
 
-		<!-- =============================================
-		     CORNER DATA
-		     ============================================= -->
+		<!-- CORNER DATA -->
 
 		<div class="corner-cluster corner-cluster-tl">
 			<span></span>
@@ -405,9 +391,7 @@
 			<span></span>
 		</div>
 
-		<!-- =============================================
-		     CORNER BRACKETS
-		     ============================================= -->
+		<!-- CORNER BRACKETS -->
 
 		<div class="corner-bracket bracket-tl">
 			<div class="bracket-line main"></div>
@@ -435,7 +419,7 @@
 	</div>
 
 	<!-- =================================================
-	     INITIAL BOOT TRANSITION
+	     BOOT
 	     ================================================= -->
 
 	{#if booting}
@@ -445,9 +429,7 @@
 			aria-hidden="true"
 		>
 			<div class="boot-scene"></div>
-
 			<div class="boot-scene-blur"></div>
-
 			<div class="boot-dark"></div>
 
 			<div class="boot-glitch-field">
@@ -464,8 +446,6 @@
 			</div>
 
 			<div class="boot-scanlines"></div>
-
-			<!-- LOADING HUD -->
 
 			<div class="loading-state">
 				<div class="loading-frame">
@@ -485,17 +465,9 @@
 					</div>
 
 					<div class="loading-status">
-						<span>
-							SYSTEM LINK
-						</span>
-
-						<span class="pink">
-							///
-						</span>
-
-						<span>
-							01
-						</span>
+						<span>SYSTEM LINK</span>
+						<span class="pink">///</span>
+						<span>01</span>
 					</div>
 
 					<div class="loading-blocks">
@@ -526,7 +498,7 @@
 	{/if}
 
 	<!-- =================================================
-	     PAGE-TO-PAGE TRANSITION
+	     PAGE TRANSITION
 	     ================================================= -->
 
 	{#if transitioning}
@@ -536,9 +508,7 @@
 			aria-hidden="true"
 		>
 			<div class="transition-scene"></div>
-
 			<div class="transition-scene-distortion"></div>
-
 			<div class="transition-dark"></div>
 
 			<div class="transition-strips">
@@ -572,10 +542,7 @@
 
 					<div class="transition-code">
 						SYSTEM RECONFIGURE
-
-						<span class="pink">
-							///
-						</span>
+						<span class="pink">///</span>
 					</div>
 
 					<div class="transition-bars">
@@ -602,7 +569,6 @@
 			</div>
 
 			<div class="release-scan"></div>
-
 			<div class="page-release"></div>
 		</div>
 	{/if}
@@ -610,49 +576,22 @@
 
 <style>
 	/* =====================================================
-	   SHARED INTERFACE COLOR
+	   COLORS / RESET
 	   ===================================================== */
 
 	:global(:root) {
 		--hud-pink: #ff0080;
-
-		--hud-pink-soft:
-			rgba(
-				255,
-				0,
-				128,
-				0.55
-			);
-
-		--hud-pink-faint:
-			rgba(
-				255,
-				0,
-				128,
-				0.2
-			);
+		--hud-pink-soft: rgba(255, 0, 128, 0.55);
+		--hud-pink-faint: rgba(255, 0, 128, 0.2);
 	}
 
-	/* =====================================================
-	   GLOBAL RESET
-	   ===================================================== */
-
-	:global(html) {
-		margin: 0;
-		padding: 0;
-
-		background: #000;
-	}
-
+	:global(html),
 	:global(body) {
 		margin: 0;
 		padding: 0;
-
 		min-width: 100%;
 		min-height: 100%;
-
 		background: #000;
-
 		color: #fff;
 	}
 
@@ -660,68 +599,370 @@
 		box-sizing: border-box;
 	}
 
-	/* =====================================================
-	   SITE
-	   ===================================================== */
-
 	.site {
 		position: relative;
-
 		width: 100%;
 		min-height: 100vh;
-
 		background: #000;
 	}
 
 	/* =====================================================
-	   GLOBAL SIGNATURE
+	   HOME BUTTON
 	   ===================================================== */
 
-	.signature {
+	.home-button {
 		position: fixed;
 
-		right: 28px;
-		bottom: 18px;
+		left: 4%;
+		top: 2.2%;
 
-		z-index: 500;
+		z-index: 1000;
+
+		/*
+		 * Explicit dimensions are important.
+		 * The previous version used only absolutely-
+		 * positioned children, causing the anchor to
+		 * collapse to zero height.
+		 */
+		width: 275px;
+		height: 105px;
 
 		display: block;
 
-		width: 220px;
-
-		opacity: 0.96;
-
+		cursor: pointer;
 		text-decoration: none;
+
+		pointer-events: auto;
+
+		transform-origin: left top;
+
+		transition:
+			transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+			filter 180ms ease;
 	}
 
-	.signature:hover,
-	.signature:focus,
-	.signature:active {
-		opacity: 0.96;
+	.signature-layer {
+		position: absolute;
 
-		transform: none;
+		left: 0;
+		top: 0;
 
-		filter: none;
+		width: 100%;
+		height: 100%;
+
+		display: block;
+
+		pointer-events: none;
+
+		overflow: visible;
+
+		opacity: 0;
 	}
 
-	.signature img {
+	.signature-layer img {
 		display: block;
 
 		width: 100%;
-		height: auto;
+		height: 100%;
 
 		object-fit: contain;
+		object-position: left top;
+	}
+
+	/* Base signature is ALWAYS visible */
+	.signature-base {
+		position: absolute;
+
+		inset: 0;
+
+		opacity: 1;
+
+		z-index: 1;
+	}
+
+	.signature-base img {
+		filter:
+			drop-shadow(
+				0 0 5px
+				rgba(255, 0, 128, 0.18)
+			);
+	}
+
+	.signature-pink {
+		z-index: 2;
+
+		filter:
+			sepia(1)
+			saturate(100)
+			hue-rotate(285deg)
+			brightness(1.35)
+			contrast(1.2);
+
+		mix-blend-mode: screen;
+	}
+
+	.signature-white {
+		z-index: 3;
+
+		filter:
+			grayscale(1)
+			brightness(2.3)
+			contrast(1.25);
+
+		mix-blend-mode: screen;
+	}
+
+	.signature-scan {
+		position: absolute;
+
+		left: -5%;
+		right: -5%;
+
+		top: 45%;
+
+		height: 2px;
+
+		z-index: 4;
+
+		background:
+			linear-gradient(
+				90deg,
+				transparent,
+				rgba(255, 0, 128, 0.9),
+				transparent
+			);
+
+		opacity: 0;
+
+		pointer-events: none;
+	}
+
+	.signature-noise {
+		position: absolute;
+
+		left: -2%;
+		top: 0;
+
+		width: 104%;
+		height: 100%;
+
+		z-index: 5;
+
+		pointer-events: none;
+
+		opacity: 0;
+
+		background:
+			repeating-linear-gradient(
+				180deg,
+				transparent 0,
+				transparent 4px,
+				rgba(255, 0, 128, 0.16) 5px,
+				transparent 6px
+			);
+
+		mix-blend-mode: screen;
+	}
+
+	/* =====================================================
+	   HOME HOVER
+	   ===================================================== */
+
+	.home-button:hover,
+	.home-button:focus-visible {
+		transform:
+			translateX(3px)
+			scale(1.035);
 
 		filter:
 			drop-shadow(
 				0 0 6px
-				rgba(
-					255,
-					0,
-					128,
-					0.18
-				)
+				rgba(255, 0, 128, 0.55)
+			)
+			drop-shadow(
+				0 0 18px
+				rgba(255, 0, 128, 0.23)
 			);
+
+		outline: none;
+	}
+
+	.home-button:hover .signature-pink,
+	.home-button:focus-visible .signature-pink {
+		opacity: 0.8;
+
+		animation:
+			signature-glitch-pink
+			480ms
+			steps(7, end)
+			infinite;
+	}
+
+	.home-button:hover .signature-white,
+	.home-button:focus-visible .signature-white {
+		opacity: 0.38;
+
+		animation:
+			signature-glitch-white
+			430ms
+			steps(6, end)
+			infinite;
+	}
+
+	.home-button:hover .signature-scan,
+	.home-button:focus-visible .signature-scan {
+		opacity: 1;
+
+		animation:
+			signature-scan
+			850ms
+			steps(5, end)
+			infinite;
+	}
+
+	.home-button:hover .signature-noise,
+	.home-button:focus-visible .signature-noise {
+		opacity: 0.78;
+
+		animation:
+			signature-noise-glitch
+			300ms
+			steps(4, end)
+			infinite;
+	}
+
+	/* =====================================================
+	   SIGNATURE ANIMATIONS
+	   ===================================================== */
+
+	@keyframes signature-glitch-pink {
+		0%,
+		100% {
+			transform: translate(0, 0);
+			clip-path: inset(0 0 0 0);
+		}
+
+		8% {
+			transform: translate(5px, -1px);
+			clip-path: inset(4% 0 82% 0);
+		}
+
+		16% {
+			transform: translate(-7px, 1px);
+			clip-path: inset(28% 0 46% 0);
+		}
+
+		26% {
+			transform: translate(4px, 0);
+			clip-path: inset(63% 0 25% 0);
+		}
+
+		38% {
+			transform: translate(-5px, -1px);
+			clip-path: inset(79% 0 7% 0);
+		}
+
+		52% {
+			transform: translate(8px, 1px);
+			clip-path: inset(14% 0 69% 0);
+		}
+
+		66% {
+			transform: translate(-4px, 0);
+			clip-path: inset(42% 0 37% 0);
+		}
+
+		80% {
+			transform: translate(6px, -1px);
+			clip-path: inset(73% 0 12% 0);
+		}
+
+		92% {
+			transform: translate(-3px, 0);
+			clip-path: inset(9% 0 77% 0);
+		}
+	}
+
+	@keyframes signature-glitch-white {
+		0%,
+		100% {
+			transform: translate(0, 0);
+			clip-path: inset(0 0 0 0);
+		}
+
+		12% {
+			transform: translate(-4px, 0);
+			clip-path: inset(17% 0 70% 0);
+		}
+
+		29% {
+			transform: translate(6px, 1px);
+			clip-path: inset(51% 0 27% 0);
+		}
+
+		46% {
+			transform: translate(-6px, -1px);
+			clip-path: inset(76% 0 9% 0);
+		}
+
+		63% {
+			transform: translate(5px, 0);
+			clip-path: inset(34% 0 53% 0);
+		}
+
+		81% {
+			transform: translate(-3px, 1px);
+			clip-path: inset(7% 0 84% 0);
+		}
+	}
+
+	@keyframes signature-scan {
+		0% {
+			top: 3%;
+			opacity: 0;
+		}
+
+		15% {
+			opacity: 0.8;
+		}
+
+		50% {
+			top: 54%;
+			opacity: 1;
+		}
+
+		85% {
+			top: 92%;
+			opacity: 0.55;
+		}
+
+		100% {
+			top: 100%;
+			opacity: 0;
+		}
+	}
+
+	@keyframes signature-noise-glitch {
+		0%,
+		100% {
+			transform: translate(0, 0);
+		}
+
+		20% {
+			transform: translate(2px, -1px);
+		}
+
+		40% {
+			transform: translate(-3px, 1px);
+		}
+
+		60% {
+			transform: translate(1px, 0);
+		}
+
+		80% {
+			transform: translate(-2px, -1px);
+		}
 	}
 
 	/* =====================================================
@@ -743,7 +984,7 @@
 	}
 
 	/* =====================================================
-	   MAIN BORDER
+	   BORDER
 	   ===================================================== */
 
 	.hud-border {
@@ -754,20 +995,11 @@
 
 		opacity: 0.78;
 
+		height: 1px;
+
 		box-shadow:
 			0 0 3px
-			rgba(
-				255,
-				0,
-				128,
-				0.08
-			);
-
-		/*
-		 * Exactly the same 1px visual language
-		 * as the portrait box.
-		 */
-		height: 1px;
+			rgba(255, 0, 128, 0.08);
 
 		animation:
 			border-glitch
@@ -779,48 +1011,96 @@
 	.hud-border.top {
 		left: 6.5%;
 		right: 7%;
-
 		top: 19px;
 	}
 
 	.hud-border.right {
 		right: 14px;
-
 		top: 9%;
 		bottom: 18%;
-
 		width: 1px;
 		height: auto;
-
-		animation-delay:
-			0.3s;
 	}
 
 	.hud-border.bottom {
 		left: 7%;
 		right: 6.5%;
-
 		bottom: 19px;
-
-		animation-delay:
-			0.55s;
+		animation-delay: 0.55s;
 	}
 
 	.hud-border.left {
 		left: 14px;
-
 		top: 9%;
 		bottom: 18%;
-
 		width: 1px;
 		height: auto;
-
-		animation-delay:
-			0.8s;
 	}
 
 	/* =====================================================
-	   EDGE SYSTEM
+	   TOP SIGNAL
+	   ===================================================== */
+
+	.top-signal {
+		position: absolute;
+		left: 38%;
+		top: 4px;
+		width: 24%;
+		height: 34px;
+	}
+
+	.top-signal-line {
+		position: absolute;
+		top: 12px;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background: var(--hud-pink-soft);
+	}
+
+	.top-signal-node {
+		position: absolute;
+		top: 8px;
+		width: 7px;
+		height: 7px;
+		border: 1px solid var(--hud-pink);
+		background: #000;
+		transform: rotate(45deg);
+	}
+
+	.top-signal-node.n1 {
+		left: 18%;
+	}
+
+	.top-signal-node.n2 {
+		left: 50%;
+	}
+
+	.top-signal-node.n3 {
+		right: 12%;
+	}
+
+	.top-signal-bars {
+		position: absolute;
+		top: 23px;
+		left: 35%;
+		display: flex;
+		gap: 3px;
+	}
+
+	.top-signal-bars span {
+		width: 6px;
+		height: 4px;
+		background: var(--hud-pink-soft);
+		animation:
+			bar-glitch
+			1.65s
+			steps(4, end)
+			infinite;
+	}
+
+	/* =====================================================
+	   TOP RIGHT SYSTEM
 	   ===================================================== */
 
 	.edge-system {
@@ -838,228 +1118,35 @@
 			infinite;
 	}
 
-	/* =====================================================
-	   TOP LEFT SYSTEM
-	   ===================================================== */
-
-	.top-left-system {
-		left: 4%;
-
-		top: 28px;
-
-		width: 180px;
-
-		padding:
-			8px 9px;
-
-		border-left:
-			1px solid
-			var(--hud-pink-soft);
-
-		border-top:
-			1px solid
-			rgba(
-				255,
-				0,
-				128,
-				0.3
-			);
-	}
-
-	.edge-system-title {
-		font-size: 8px;
-
-		font-weight: 700;
-
-		letter-spacing:
-			0.13em;
-	}
-
-	.edge-system-line {
-		width: 100%;
-		height: 1px;
-
-		margin:
-			5px 0;
-
-		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.36
-			);
-	}
-
-	.edge-system-data {
-		display: flex;
-
-		justify-content:
-			space-between;
-
-		font-size: 6px;
-
-		color:
-			var(--hud-pink-soft);
-	}
-
-	.edge-blocks {
-		display: flex;
-
-		gap: 3px;
-
-		margin-top: 7px;
-	}
-
-	.edge-blocks span {
-		width: 14px;
-		height: 4px;
-
-		background:
-			var(--hud-pink-soft);
-
-		animation:
-			bar-glitch
-			1.8s
-			steps(4, end)
-			infinite;
-	}
-
-	/* =====================================================
-	   TOP SIGNAL
-	   ===================================================== */
-
-	.top-signal {
-		position: absolute;
-
-		left: 38%;
-		top: 4px;
-
-		width: 24%;
-		height: 34px;
-	}
-
-	.top-signal-line {
-		position: absolute;
-
-		top: 12px;
-		left: 0;
-		right: 0;
-
-		height: 1px;
-
-		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.48
-			);
-	}
-
-	.top-signal-node {
-		position: absolute;
-
-		top: 8px;
-
-		width: 7px;
-		height: 7px;
-
-		border:
-			1px solid
-			var(--hud-pink);
-
-		background: #000;
-
-		transform:
-			rotate(45deg);
-	}
-
-	.top-signal-node.n1 {
-		left: 18%;
-	}
-
-	.top-signal-node.n2 {
-		left: 50%;
-	}
-
-	.top-signal-node.n3 {
-		right: 12%;
-	}
-
-	.top-signal-bars {
-		position: absolute;
-
-		top: 23px;
-		left: 35%;
-
-		display: flex;
-
-		gap: 3px;
-	}
-
-	.top-signal-bars span {
-		width: 6px;
-		height: 4px;
-
-		background:
-			var(--hud-pink-soft);
-
-		animation:
-			bar-glitch
-			1.65s
-			steps(4, end)
-			infinite;
-	}
-
-	/* =====================================================
-	   TOP RIGHT SYSTEM
-	   ===================================================== */
-
 	.top-right-system {
 		right: 4%;
-
 		top: 28px;
-
 		width: 120px;
 		height: 28px;
-
-		border:
-			1px solid
-			var(--hud-pink-soft);
-
+		border: 1px solid var(--hud-pink-soft);
 		padding: 6px;
 	}
 
 	.system-box-title {
 		position: absolute;
-
 		left: 6px;
 		top: 7px;
-
 		font-size: 6px;
-
 		font-weight: 700;
 	}
 
 	.system-box-data {
 		position: absolute;
-
 		left: 27px;
 		top: 7px;
-
 		display: flex;
-
 		gap: 2px;
 	}
 
 	.system-box-data span {
 		width: 5px;
 		height: 5px;
-
-		background:
-			var(--hud-pink-soft);
-
+		background: var(--hud-pink-soft);
 		animation:
 			bar-glitch
 			1.6s
@@ -1069,14 +1156,10 @@
 
 	.system-box-status {
 		position: absolute;
-
 		left: 27px;
 		bottom: 4px;
-
 		font-size: 4px;
-
-		color:
-			var(--hud-pink-soft);
+		color: var(--hud-pink-soft);
 	}
 
 	/* =====================================================
@@ -1110,27 +1193,17 @@
 
 	.radar-circle {
 		position: absolute;
-
 		left: 50%;
 		top: 50%;
 
 		border:
 			1px solid
-			rgba(
-				255,
-				0,
-				128,
-				0.64
-			);
+			rgba(255, 0, 128, 0.64);
 
-		border-radius:
-			50%;
+		border-radius: 50%;
 
 		transform:
-			translate(
-				-50%,
-				-50%
-			);
+			translate(-50%, -50%);
 	}
 
 	.radar-circle.outer {
@@ -1150,45 +1223,31 @@
 
 	.radar-cross {
 		position: absolute;
-
-		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.4
-			);
+		background: var(--hud-pink-soft);
 	}
 
 	.radar-cross.horizontal {
 		left: 0;
 		right: 0;
-
 		top: 50%;
-
 		height: 1px;
 	}
 
 	.radar-cross.vertical {
 		top: 0;
 		bottom: 0;
-
 		left: 50%;
-
 		width: 1px;
 	}
 
 	.radar-sweep {
 		position: absolute;
-
 		left: 50%;
 		top: 50%;
-
 		width: 39px;
 		height: 1px;
 
-		transform-origin:
-			left center;
+		transform-origin: left center;
 
 		background:
 			linear-gradient(
@@ -1206,18 +1265,12 @@
 
 	.radar-point {
 		position: absolute;
-
 		left: 67%;
 		top: 30%;
-
 		width: 4px;
 		height: 4px;
-
-		background:
-			var(--hud-pink);
-
-		border-radius:
-			50%;
+		background: var(--hud-pink);
+		border-radius: 50%;
 	}
 
 	/* =====================================================
@@ -1228,7 +1281,6 @@
 		position: absolute;
 
 		top: 27%;
-
 		width: 30px;
 
 		font-family:
@@ -1255,23 +1307,14 @@
 
 	.rail-number {
 		font-size: 6px;
-
 		margin-bottom: 8px;
 	}
 
 	.rail-track {
 		width: 1px;
 		height: 210px;
-
 		margin-left: 5px;
-
-		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.35
-			);
+		background: rgba(255, 0, 128, 0.35);
 	}
 
 	.rail-point {
@@ -1287,9 +1330,7 @@
 			1px solid
 			var(--hud-pink);
 
-		border-radius:
-			50%;
-
+		border-radius: 50%;
 		background: #000;
 
 		animation:
@@ -1301,18 +1342,11 @@
 
 	.rail-data {
 		display: flex;
-
-		flex-direction:
-			column;
-
+		flex-direction: column;
 		gap: 3px;
-
 		margin-top: 10px;
-
 		font-size: 5px;
-
-		color:
-			var(--hud-pink-soft);
+		color: var(--hud-pink-soft);
 	}
 
 	/* =====================================================
@@ -1321,9 +1355,7 @@
 
 	.bottom-module {
 		position: absolute;
-
 		bottom: 42px;
-
 		width: 180px;
 
 		font-family:
@@ -1332,7 +1364,6 @@
 			monospace;
 
 		font-size: 6px;
-
 		opacity: 0.5;
 
 		animation:
@@ -1351,24 +1382,19 @@
 	}
 
 	.module-heading {
-		letter-spacing:
-			0.14em;
+		letter-spacing: 0.14em;
 	}
 
 	.module-bar-grid {
 		display: flex;
-
 		gap: 4px;
-
 		margin-top: 7px;
 	}
 
 	.module-bar-grid span {
 		width: 16px;
 		height: 4px;
-
-		background:
-			var(--hud-pink-soft);
+		background: var(--hud-pink-soft);
 
 		animation:
 			bar-glitch
@@ -1384,24 +1410,14 @@
 	.module-rule {
 		width: 100%;
 		height: 1px;
-
 		margin-top: 7px;
-
-		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.32
-			);
+		background: var(--hud-pink-soft);
 	}
 
 	.module-small-text,
 	.module-status-code {
 		margin-top: 5px;
-
-		color:
-			var(--hud-pink-soft);
+		color: var(--hud-pink-soft);
 	}
 
 	/* =====================================================
@@ -1436,21 +1452,11 @@
 
 	.stream-rule {
 		position: absolute;
-
 		top: 4px;
-
 		left: 0;
 		right: 0;
-
 		height: 1px;
-
-		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.45
-			);
+		background: var(--hud-pink-soft);
 	}
 
 	.stream-node {
@@ -1465,9 +1471,7 @@
 			1px solid
 			var(--hud-pink);
 
-		border-radius:
-			50%;
-
+		border-radius: 50%;
 		background: #000;
 	}
 
@@ -1488,14 +1492,11 @@
 
 	.stream-bars {
 		position: absolute;
-
 		left: 45px;
 		right: 45px;
-
 		top: 12px;
 
 		display: flex;
-
 		gap: 4px;
 	}
 
@@ -1524,9 +1525,7 @@
 			translateX(-50%);
 
 		font-size: 5px;
-
-		letter-spacing:
-			0.15em;
+		letter-spacing: 0.15em;
 	}
 
 	/* =====================================================
@@ -1538,7 +1537,6 @@
 
 		left: 18%;
 		right: 18%;
-
 		bottom: 8px;
 
 		height: 24px;
@@ -1551,35 +1549,21 @@
 
 		left: 0;
 		right: 0;
-
 		top: 10px;
 
 		height: 1px;
-
-		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.36
-			);
+		background: var(--hud-pink-soft);
 	}
 
 	.bottom-circuit-branch {
 		position: absolute;
 
 		top: 5px;
-
 		height: 11px;
 
 		border-left:
 			1px solid
-			rgba(
-				255,
-				0,
-				128,
-				0.5
-			);
+			var(--hud-pink-soft);
 	}
 
 	.branch-a {
@@ -1606,9 +1590,7 @@
 			1px solid
 			var(--hud-pink);
 
-		border-radius:
-			50%;
-
+		border-radius: 50%;
 		background: #000;
 	}
 
@@ -1625,24 +1607,19 @@
 	}
 
 	/* =====================================================
-	   CORNER MICRO DATA
+	   CORNER DATA
 	   ===================================================== */
 
 	.corner-cluster {
 		position: absolute;
-
-		display:
-			flex;
-
+		display: flex;
 		gap: 4px;
 	}
 
 	.corner-cluster span {
 		width: 4px;
 		height: 4px;
-
-		background:
-			var(--hud-pink-soft);
+		background: var(--hud-pink-soft);
 
 		animation:
 			bar-glitch
@@ -1696,41 +1673,30 @@
 	.bracket-tr {
 		right: 13px;
 		top: 17px;
-
-		transform:
-			scaleX(-1);
+		transform: scaleX(-1);
 	}
 
 	.bracket-bl {
 		left: 13px;
 		bottom: 17px;
-
-		transform:
-			scaleY(-1);
+		transform: scaleY(-1);
 	}
 
 	.bracket-br {
 		right: 13px;
 		bottom: 17px;
-
-		transform:
-			scale(-1);
+		transform: scale(-1);
 	}
 
 	.bracket-line {
 		position: absolute;
-
 		left: 0;
-
 		height: 1px;
-
-		background:
-			var(--hud-pink);
+		background: var(--hud-pink);
 	}
 
 	.bracket-line.main {
 		top: 14px;
-
 		width: 58px;
 	}
 
@@ -1751,9 +1717,7 @@
 
 	.bracket-line.short {
 		top: 29px;
-
 		width: 38px;
-
 		opacity: 0.62;
 	}
 
@@ -1770,9 +1734,7 @@
 			1px solid
 			var(--hud-pink);
 
-		border-radius:
-			50%;
-
+		border-radius: 50%;
 		background: #000;
 
 		animation:
@@ -1791,52 +1753,27 @@
 		86%,
 		100% {
 			opacity: 0.78;
-
-			transform:
-				translate(
-					0,
-					0
-				);
+			transform: translate(0, 0);
 		}
 
 		88% {
 			opacity: 0.48;
-
-			transform:
-				translate(
-					-1px,
-					0
-				);
+			transform: translate(-1px, 0);
 		}
 
 		90% {
 			opacity: 0.96;
-
-			transform:
-				translate(
-					2px,
-					0
-				);
+			transform: translate(2px, 0);
 		}
 
 		92% {
 			opacity: 0.55;
-
-			transform:
-				translate(
-					-1px,
-					1px
-				);
+			transform: translate(-1px, 1px);
 		}
 
 		94% {
 			opacity: 0.82;
-
-			transform:
-				translate(
-					0,
-					0
-				);
+			transform: translate(0, 0);
 		}
 	}
 
@@ -1845,62 +1782,32 @@
 		84%,
 		100% {
 			opacity: 0.78;
-
-			transform:
-				translate(
-					0,
-					0
-				);
+			transform: translate(0, 0);
 		}
 
 		86% {
 			opacity: 0.44;
-
-			transform:
-				translate(
-					-2px,
-					0
-				);
+			transform: translate(-2px, 0);
 		}
 
 		88% {
 			opacity: 0.94;
-
-			transform:
-				translate(
-					3px,
-					-1px
-				);
+			transform: translate(3px, -1px);
 		}
 
 		90% {
 			opacity: 0.4;
-
-			transform:
-				translate(
-					-1px,
-					1px
-				);
+			transform: translate(-1px, 1px);
 		}
 
 		92% {
 			opacity: 0.78;
-
-			transform:
-				translate(
-					1px,
-					0
-				);
+			transform: translate(1px, 0);
 		}
 
 		94% {
 			opacity: 0.82;
-
-			transform:
-				translate(
-					0,
-					0
-				);
+			transform: translate(0, 0);
 		}
 	}
 
@@ -1909,30 +1816,22 @@
 		87%,
 		100% {
 			opacity: 0.4;
-
-			transform:
-				translateX(0);
+			transform: translateX(0);
 		}
 
 		89% {
 			opacity: 0.24;
-
-			transform:
-				translateX(-1px);
+			transform: translateX(-1px);
 		}
 
 		91% {
 			opacity: 0.64;
-
-			transform:
-				translateX(2px);
+			transform: translateX(2px);
 		}
 
 		93% {
 			opacity: 0.34;
-
-			transform:
-				translateX(-1px);
+			transform: translateX(-1px);
 		}
 	}
 
@@ -1941,38 +1840,28 @@
 		87%,
 		100% {
 			opacity: 0.48;
-
-			transform:
-				translateX(-50%);
+			transform: translateX(-50%);
 		}
 
 		89% {
 			opacity: 0.25;
-
 			transform:
 				translateX(
-					calc(
-						-50% - 2px
-					)
+					calc(-50% - 2px)
 				);
 		}
 
 		91% {
 			opacity: 0.72;
-
 			transform:
 				translateX(
-					calc(
-						-50% + 2px
-					)
+					calc(-50% + 2px)
 				);
 		}
 
 		93% {
 			opacity: 0.4;
-
-			transform:
-				translateX(-50%);
+			transform: translateX(-50%);
 		}
 	}
 
@@ -1981,37 +1870,27 @@
 		70%,
 		100% {
 			opacity: 0.52;
-
-			transform:
-				scaleX(1);
+			transform: scaleX(1);
 		}
 
 		74% {
 			opacity: 0.18;
-
-			transform:
-				scaleX(0.62);
+			transform: scaleX(0.62);
 		}
 
 		78% {
 			opacity: 0.84;
-
-			transform:
-				scaleX(1.12);
+			transform: scaleX(1.12);
 		}
 
 		82% {
 			opacity: 0.34;
-
-			transform:
-				scaleX(0.82);
+			transform: scaleX(0.82);
 		}
 
 		86% {
 			opacity: 0.66;
-
-			transform:
-				scaleX(1);
+			transform: scaleX(1);
 		}
 	}
 
@@ -2019,28 +1898,22 @@
 		0%,
 		100% {
 			opacity: 0.42;
-
-			transform:
-				scale(0.9);
+			transform: scale(0.9);
 		}
 
 		50% {
 			opacity: 0.95;
-
-			transform:
-				scale(1.14);
+			transform: scale(1.14);
 		}
 	}
 
 	@keyframes radar-sweep {
 		from {
-			transform:
-				rotate(0deg);
+			transform: rotate(0deg);
 		}
 
 		to {
-			transform:
-				rotate(360deg);
+			transform: rotate(360deg);
 		}
 	}
 
@@ -2049,63 +1922,39 @@
 		88%,
 		100% {
 			opacity: 0.32;
-
-			transform:
-				translate(
-					0,
-					0
-				);
+			transform: translate(0, 0);
 		}
 
 		90% {
 			opacity: 0.18;
-
-			transform:
-				translate(
-					-1px,
-					0
-				);
+			transform: translate(-1px, 0);
 		}
 
 		92% {
 			opacity: 0.56;
-
-			transform:
-				translate(
-					2px,
-					-1px
-				);
+			transform: translate(2px, -1px);
 		}
 
 		94% {
 			opacity: 0.3;
-
-			transform:
-				translate(
-					-1px,
-					1px
-				);
+			transform: translate(-1px, 1px);
 		}
 	}
 
 	/* =====================================================
-	   BOOT TRANSITION
+	   BOOT
 	   ===================================================== */
 
 	.boot-transition {
 		position: fixed;
-
 		inset: 0;
 
 		z-index: 10000;
 
 		overflow: hidden;
 
-		background:
-			#000;
-
-		pointer-events:
-			none;
+		background: #000;
+		pointer-events: none;
 
 		animation:
 			boot-in
@@ -2118,80 +1967,49 @@
 		animation:
 			boot-out
 			1.05s
-			cubic-bezier(
-				0.76,
-				0,
-				0.24,
-				1
-			)
+			cubic-bezier(0.76, 0, 0.24, 1)
 			forwards;
 	}
 
 	.boot-scene {
 		position: absolute;
-
 		inset: -5%;
 
 		background:
 			url('/home-background.png')
-			center center /
-			cover
-			no-repeat;
+			center center / cover no-repeat;
 
 		filter:
 			blur(15px)
 			brightness(0.37)
 			saturate(0.72);
 
-		transform:
-			scale(1.08);
+		transform: scale(1.08);
 	}
 
 	.boot-scene-blur {
 		position: absolute;
-
 		inset: 0;
 
 		background:
 			radial-gradient(
 				ellipse at center,
-				rgba(
-					255,
-					0,
-					128,
-					0.075
-				),
-				rgba(
-					0,
-					0,
-					0,
-					0.85
-				) 100%
+				rgba(255, 0, 128, 0.075),
+				rgba(0, 0, 0, 0.85) 100%
 			);
 
-		backdrop-filter:
-			blur(3px);
+		backdrop-filter: blur(3px);
 	}
 
 	.boot-dark {
 		position: absolute;
-
 		inset: 0;
-
-		background:
-			rgba(
-				0,
-				0,
-				0,
-				0.48
-			);
+		background: rgba(0, 0, 0, 0.48);
 	}
 
 	.boot-glitch-field {
 		position: absolute;
-
 		inset: 0;
-
 		z-index: 4;
 	}
 
@@ -2204,12 +2022,7 @@
 			linear-gradient(
 				90deg,
 				transparent,
-				rgba(
-					255,
-					0,
-					128,
-					0.35
-				),
+				rgba(255, 0, 128, 0.35),
 				var(--hud-pink),
 				transparent
 			);
@@ -2217,68 +2030,18 @@
 		opacity: 0;
 	}
 
-	.g1 {
-		top: 19%;
-		left: 0;
-		width: 47%;
-	}
+	.g1 { top: 19%; left: 0; width: 47%; }
+	.g2 { top: 27%; right: 4%; width: 40%; }
+	.g3 { top: 35%; left: 17%; width: 62%; }
+	.g4 { top: 43%; left: 3%; width: 50%; }
+	.g5 { top: 51%; right: 9%; width: 61%; }
+	.g6 { top: 60%; left: 25%; width: 66%; }
+	.g7 { top: 69%; right: 0; width: 45%; }
+	.g8 { top: 77%; left: 8%; width: 49%; }
+	.g9 { top: 85%; right: 14%; width: 57%; }
+	.g10 { top: 91%; left: 21%; width: 53%; }
 
-	.g2 {
-		top: 27%;
-		right: 4%;
-		width: 40%;
-	}
-
-	.g3 {
-		top: 35%;
-		left: 17%;
-		width: 62%;
-	}
-
-	.g4 {
-		top: 43%;
-		left: 3%;
-		width: 50%;
-	}
-
-	.g5 {
-		top: 51%;
-		right: 9%;
-		width: 61%;
-	}
-
-	.g6 {
-		top: 60%;
-		left: 25%;
-		width: 66%;
-	}
-
-	.g7 {
-		top: 69%;
-		right: 0;
-		width: 45%;
-	}
-
-	.g8 {
-		top: 77%;
-		left: 8%;
-		width: 49%;
-	}
-
-	.g9 {
-		top: 85%;
-		right: 14%;
-		width: 57%;
-	}
-
-	.g10 {
-		top: 91%;
-		left: 21%;
-		width: 53%;
-	}
-
-	.boot-transition:not(.boot-exiting)
-		.boot-glitch {
+	.boot-transition:not(.boot-exiting) .boot-glitch {
 		animation:
 			boot-glitch
 			1.5s
@@ -2288,7 +2051,6 @@
 
 	.boot-scanlines {
 		position: absolute;
-
 		inset: 0;
 
 		background:
@@ -2296,72 +2058,39 @@
 				180deg,
 				transparent 0,
 				transparent 4px,
-				rgba(
-					255,
-					0,
-					128,
-					0.04
-				) 5px
+				rgba(255, 0, 128, 0.04) 5px
 			);
 	}
 
-	/* =====================================================
-	   LOADING STATE
-	   ===================================================== */
-
 	.loading-state {
 		position: absolute;
-
 		inset: 0;
 
 		z-index: 20;
 
-		display:
-			grid;
-
-		place-items:
-			center;
+		display: grid;
+		place-items: center;
 
 		animation:
 			loading-state-in
 			1s
-			cubic-bezier(
-				0.22,
-				1,
-				0.36,
-				1
-			)
+			cubic-bezier(0.22, 1, 0.36, 1)
 			forwards;
 	}
 
-	.boot-exiting
-		.loading-state {
+	.boot-exiting .loading-state {
 		animation:
 			loading-state-out
 			1.05s
-			cubic-bezier(
-				0.65,
-				0,
-				0.35,
-				1
-			)
+			cubic-bezier(0.65, 0, 0.35, 1)
 			forwards;
 	}
 
 	.loading-frame {
 		position: relative;
 
-		width:
-			min(
-				620px,
-				55vw
-			);
-
-		height:
-			min(
-				345px,
-				42vh
-			);
+		width: min(620px, 55vw);
+		height: min(345px, 42vh);
 
 		border:
 			1px solid
@@ -2370,18 +2099,8 @@
 		background:
 			linear-gradient(
 				180deg,
-				rgba(
-					255,
-					0,
-					128,
-					0.02
-				),
-				rgba(
-					0,
-					0,
-					0,
-					0.52
-				)
+				rgba(255, 0, 128, 0.02),
+				rgba(0, 0, 0, 0.52)
 			);
 	}
 
@@ -2398,45 +2117,29 @@
 	.loading-corner.tl {
 		left: -1px;
 		top: -1px;
-
-		border-left:
-			1px solid;
-
-		border-top:
-			1px solid;
+		border-left: 1px solid;
+		border-top: 1px solid;
 	}
 
 	.loading-corner.tr {
 		right: -1px;
 		top: -1px;
-
-		border-right:
-			1px solid;
-
-		border-top:
-			1px solid;
+		border-right: 1px solid;
+		border-top: 1px solid;
 	}
 
 	.loading-corner.bl {
 		left: -1px;
 		bottom: -1px;
-
-		border-left:
-			1px solid;
-
-		border-bottom:
-			1px solid;
+		border-left: 1px solid;
+		border-bottom: 1px solid;
 	}
 
 	.loading-corner.br {
 		right: -1px;
 		bottom: -1px;
-
-		border-right:
-			1px solid;
-
-		border-bottom:
-			1px solid;
+		border-right: 1px solid;
+		border-bottom: 1px solid;
 	}
 
 	.loading-ring {
@@ -2449,14 +2152,10 @@
 			1px solid
 			var(--hud-pink-soft);
 
-		border-radius:
-			50%;
+		border-radius: 50%;
 
 		transform:
-			translate(
-				-50%,
-				-50%
-			);
+			translate(-50%, -50%);
 
 		animation:
 			loading-ring
@@ -2473,9 +2172,7 @@
 	.loading-ring.small {
 		width: 58px;
 		height: 58px;
-
-		animation-delay:
-			0.25s;
+		animation-delay: 0.25s;
 	}
 
 	.loading-cross {
@@ -2485,18 +2182,10 @@
 		top: 50%;
 
 		background:
-			rgba(
-				255,
-				0,
-				128,
-				0.34
-			);
+			var(--hud-pink-soft);
 
 		transform:
-			translate(
-				-50%,
-				-50%
-			);
+			translate(-50%, -50%);
 	}
 
 	.loading-cross.vertical {
@@ -2524,22 +2213,12 @@
 			monospace;
 
 		font-size:
-			clamp(
-				0.7rem,
-				1vw,
-				0.92rem
-			);
+			clamp(0.7rem, 1vw, 0.92rem);
 
-		letter-spacing:
-			0.18em;
+		letter-spacing: 0.18em;
 
 		color:
-			rgba(
-				255,
-				255,
-				255,
-				0.74
-			);
+			rgba(255, 255, 255, 0.74);
 	}
 
 	.loading-status {
@@ -2551,9 +2230,7 @@
 		transform:
 			translateX(-50%);
 
-		display:
-			flex;
-
+		display: flex;
 		gap: 10px;
 
 		font-family:
@@ -2561,19 +2238,16 @@
 			Courier,
 			monospace;
 
-		font-size:
-			0.5rem;
+		font-size: 0.5rem;
 
-		letter-spacing:
-			0.13em;
+		letter-spacing: 0.13em;
 
 		color:
-			rgba(
-				255,
-				255,
-				255,
-				0.36
-			);
+			rgba(255, 255, 255, 0.36);
+	}
+
+	.pink {
+		color: var(--hud-pink);
 	}
 
 	.loading-blocks {
@@ -2585,9 +2259,7 @@
 		transform:
 			translateX(-50%);
 
-		display:
-			flex;
-
+		display: flex;
 		gap: 4px;
 	}
 
@@ -2606,17 +2278,14 @@
 	}
 
 	.loading-tears {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
 
 		z-index: 25;
 	}
 
 	.loading-tear {
-		position:
-			absolute;
+		position: absolute;
 
 		height: 2px;
 
@@ -2629,39 +2298,7 @@
 			);
 
 		opacity: 0;
-	}
 
-	.lt1 {
-		top: 28%;
-		left: 5%;
-		width: 40%;
-	}
-
-	.lt2 {
-		top: 40%;
-		right: 5%;
-		width: 32%;
-	}
-
-	.lt3 {
-		top: 52%;
-		left: 12%;
-		width: 64%;
-	}
-
-	.lt4 {
-		top: 66%;
-		right: 11%;
-		width: 44%;
-	}
-
-	.lt5 {
-		top: 78%;
-		left: 20%;
-		width: 52%;
-	}
-
-	.loading-tear {
 		animation:
 			loading-tear
 			1.8s
@@ -2669,30 +2306,14 @@
 			infinite;
 	}
 
-	.lt2 {
-		animation-delay:
-			0.1s;
-	}
-
-	.lt3 {
-		animation-delay:
-			0.2s;
-	}
-
-	.lt4 {
-		animation-delay:
-			0.3s;
-	}
-
-	.lt5 {
-		animation-delay:
-			0.4s;
-	}
+	.lt1 { top: 28%; left: 5%; width: 40%; }
+	.lt2 { top: 40%; right: 5%; width: 32%; animation-delay: 0.1s; }
+	.lt3 { top: 52%; left: 12%; width: 64%; animation-delay: 0.2s; }
+	.lt4 { top: 66%; right: 11%; width: 44%; animation-delay: 0.3s; }
+	.lt5 { top: 78%; left: 20%; width: 52%; animation-delay: 0.4s; }
 
 	.boot-release {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
 
 		z-index: 40;
@@ -2703,8 +2324,7 @@
 		opacity: 0;
 	}
 
-	.boot-exiting
-		.boot-release {
+	.boot-exiting .boot-release {
 		animation:
 			boot-release
 			1.05s
@@ -2717,21 +2337,16 @@
 	   ===================================================== */
 
 	.page-transition {
-		position:
-			fixed;
-
+		position: fixed;
 		inset: 0;
 
 		z-index: 9999;
 
-		overflow:
-			hidden;
+		overflow: hidden;
 
-		background:
-			#000;
+		background: #000;
 
-		pointer-events:
-			none;
+		pointer-events: none;
 
 		animation:
 			transition-in
@@ -2741,39 +2356,21 @@
 	}
 
 	.transition-scene {
-		position:
-			absolute;
-
-		inset:
-			-6%;
+		position: absolute;
+		inset: -6%;
 
 		background:
-			rgba(
-				0,
-				0,
-				0,
-				0.2
-			);
-
-		backdrop-filter:
-			blur(0);
+			rgba(0, 0, 0, 0.2);
 
 		animation:
 			transition-blur
 			1.8s
-			cubic-bezier(
-				0.65,
-				0,
-				0.35,
-				1
-			)
+			cubic-bezier(0.65, 0, 0.35, 1)
 			forwards;
 	}
 
 	.transition-scene-distortion {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
 
 		background:
@@ -2781,12 +2378,7 @@
 				180deg,
 				transparent 0,
 				transparent 5px,
-				rgba(
-					255,
-					0,
-					128,
-					0.025
-				) 6px
+				rgba(255, 0, 128, 0.025) 6px
 			);
 
 		opacity: 0;
@@ -2799,26 +2391,14 @@
 	}
 
 	.transition-dark {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
 
 		background:
 			radial-gradient(
 				ellipse at center,
-				rgba(
-					255,
-					0,
-					128,
-					0.025
-				),
-				rgba(
-					0,
-					0,
-					0,
-					0.86
-				) 92%
+				rgba(255, 0, 128, 0.025),
+				rgba(0, 0, 0, 0.86) 92%
 			);
 
 		opacity: 0;
@@ -2831,17 +2411,13 @@
 	}
 
 	.transition-strips {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
-
 		z-index: 8;
 	}
 
 	.transition-strip {
-		position:
-			absolute;
+		position: absolute;
 
 		height: 3px;
 
@@ -2857,190 +2433,53 @@
 
 		box-shadow:
 			0 0 13px
-			rgba(
-				255,
-				0,
-				128,
-				0.3
-			);
+			rgba(255, 0, 128, 0.3);
 
 		opacity: 0;
 
 		transform:
 			translateX(-10%)
 			scaleX(0.7);
-	}
 
-	.ts1 {
-		top: 14%;
-		left: 0;
-		width: 55%;
-	}
-
-	.ts2 {
-		top: 21%;
-		left: 32%;
-		width: 63%;
-	}
-
-	.ts3 {
-		top: 28%;
-		left: -4%;
-		width: 46%;
-	}
-
-	.ts4 {
-		top: 35%;
-		left: 15%;
-		width: 72%;
-	}
-
-	.ts5 {
-		top: 42%;
-		left: 40%;
-		width: 57%;
-	}
-
-	.ts6 {
-		top: 50%;
-		left: -4%;
-		width: 54%;
-	}
-
-	.ts7 {
-		top: 57%;
-		left: 17%;
-		width: 68%;
-	}
-
-	.ts8 {
-		top: 64%;
-		left: 44%;
-		width: 59%;
-	}
-
-	.ts9 {
-		top: 71%;
-		left: 3%;
-		width: 56%;
-	}
-
-	.ts10 {
-		top: 78%;
-		left: 28%;
-		width: 68%;
-	}
-
-	.ts11 {
-		top: 85%;
-		left: 8%;
-		width: 42%;
-	}
-
-	.ts12 {
-		top: 91%;
-		left: 51%;
-		width: 45%;
-	}
-
-	.transition-strip {
 		animation:
 			transition-strip
 			1.08s
-			cubic-bezier(
-				0.65,
-				0,
-				0.35,
-				1
-			)
+			cubic-bezier(0.65, 0, 0.35, 1)
 			forwards;
 	}
 
-	.ts2 {
-		animation-delay:
-			0.03s;
-	}
-
-	.ts3 {
-		animation-delay:
-			0.06s;
-	}
-
-	.ts4 {
-		animation-delay:
-			0.09s;
-	}
-
-	.ts5 {
-		animation-delay:
-			0.12s;
-	}
-
-	.ts6 {
-		animation-delay:
-			0.15s;
-	}
-
-	.ts7 {
-		animation-delay:
-			0.18s;
-	}
-
-	.ts8 {
-		animation-delay:
-			0.21s;
-	}
-
-	.ts9 {
-		animation-delay:
-			0.24s;
-	}
-
-	.ts10 {
-		animation-delay:
-			0.27s;
-	}
-
-	.ts11 {
-		animation-delay:
-			0.3s;
-	}
-
-	.ts12 {
-		animation-delay:
-			0.33s;
-	}
+	.ts1 { top: 14%; left: 0; width: 55%; }
+	.ts2 { top: 21%; left: 32%; width: 63%; animation-delay: 0.03s; }
+	.ts3 { top: 28%; left: -4%; width: 46%; animation-delay: 0.06s; }
+	.ts4 { top: 35%; left: 15%; width: 72%; animation-delay: 0.09s; }
+	.ts5 { top: 42%; left: 40%; width: 57%; animation-delay: 0.12s; }
+	.ts6 { top: 50%; left: -4%; width: 54%; animation-delay: 0.15s; }
+	.ts7 { top: 57%; left: 17%; width: 68%; animation-delay: 0.18s; }
+	.ts8 { top: 64%; left: 44%; width: 59%; animation-delay: 0.21s; }
+	.ts9 { top: 71%; left: 3%; width: 56%; animation-delay: 0.24s; }
+	.ts10 { top: 78%; left: 28%; width: 68%; animation-delay: 0.27s; }
+	.ts11 { top: 85%; left: 8%; width: 42%; animation-delay: 0.3s; }
+	.ts12 { top: 91%; left: 51%; width: 45%; animation-delay: 0.33s; }
 
 	.transition-loading {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
 
 		z-index: 20;
 
-		display:
-			grid;
-
-		place-items:
-			center;
+		display: grid;
+		place-items: center;
 
 		opacity: 0;
 
 		animation:
 			transition-loading
 			1.7s
-			cubic-bezier(
-				0.22,
-				1,
-				0.36,
-				1
-			)
+			cubic-bezier(0.22, 1, 0.36, 1)
 			forwards;
 	}
 
-	.transition-leaving
-		.transition-loading {
+	.transition-leaving .transition-loading {
 		animation:
 			transition-loading-leave
 			0.82s
@@ -3049,20 +2488,10 @@
 	}
 
 	.transition-frame {
-		position:
-			relative;
+		position: relative;
 
-		width:
-			min(
-				620px,
-				56vw
-			);
-
-		height:
-			min(
-				345px,
-				42vh
-			);
+		width: min(620px, 56vw);
+		height: min(345px, 42vh);
 
 		border:
 			1px solid
@@ -3071,24 +2500,13 @@
 		background:
 			linear-gradient(
 				180deg,
-				rgba(
-					255,
-					0,
-					128,
-					0.018
-				),
-				rgba(
-					0,
-					0,
-					0,
-					0.55
-				)
+				rgba(255, 0, 128, 0.018),
+				rgba(0, 0, 0, 0.55)
 			);
 	}
 
 	.transition-corner {
-		position:
-			absolute;
+		position: absolute;
 
 		width: 27px;
 		height: 27px;
@@ -3100,50 +2518,33 @@
 	.transition-corner.tl {
 		left: -1px;
 		top: -1px;
-
-		border-left:
-			1px solid;
-
-		border-top:
-			1px solid;
+		border-left: 1px solid;
+		border-top: 1px solid;
 	}
 
 	.transition-corner.tr {
 		right: -1px;
 		top: -1px;
-
-		border-right:
-			1px solid;
-
-		border-top:
-			1px solid;
+		border-right: 1px solid;
+		border-top: 1px solid;
 	}
 
 	.transition-corner.bl {
 		left: -1px;
 		bottom: -1px;
-
-		border-left:
-			1px solid;
-
-		border-bottom:
-			1px solid;
+		border-left: 1px solid;
+		border-bottom: 1px solid;
 	}
 
 	.transition-corner.br {
 		right: -1px;
 		bottom: -1px;
-
-		border-right:
-			1px solid;
-
-		border-bottom:
-			1px solid;
+		border-right: 1px solid;
+		border-bottom: 1px solid;
 	}
 
 	.transition-circle {
-		position:
-			absolute;
+		position: absolute;
 
 		left: 50%;
 		top: 48%;
@@ -3152,14 +2553,10 @@
 			1px solid
 			var(--hud-pink-soft);
 
-		border-radius:
-			50%;
+		border-radius: 50%;
 
 		transform:
-			translate(
-				-50%,
-				-50%
-			);
+			translate(-50%, -50%);
 
 		animation:
 			hud-ring
@@ -3176,14 +2573,11 @@
 	.circle-small {
 		width: 48px;
 		height: 48px;
-
-		animation-delay:
-			0.25s;
+		animation-delay: 0.25s;
 	}
 
 	.transition-title {
-		position:
-			absolute;
+		position: absolute;
 
 		left: 50%;
 		top: 40%;
@@ -3197,27 +2591,16 @@
 			monospace;
 
 		font-size:
-			clamp(
-				0.66rem,
-				0.95vw,
-				0.86rem
-			);
+			clamp(0.66rem, 0.95vw, 0.86rem);
 
-		letter-spacing:
-			0.18em;
+		letter-spacing: 0.18em;
 
 		color:
-			rgba(
-				255,
-				255,
-				255,
-				0.68
-			);
+			rgba(255, 255, 255, 0.68);
 	}
 
 	.transition-code {
-		position:
-			absolute;
+		position: absolute;
 
 		left: 50%;
 		top: 59%;
@@ -3230,27 +2613,18 @@
 			Courier,
 			monospace;
 
-		font-size:
-			0.5rem;
+		font-size: 0.5rem;
 
-		letter-spacing:
-			0.12em;
+		letter-spacing: 0.12em;
 
 		color:
-			rgba(
-				255,
-				255,
-				255,
-				0.36
-			);
+			rgba(255, 255, 255, 0.36);
 
-		white-space:
-			nowrap;
+		white-space: nowrap;
 	}
 
 	.transition-bars {
-		position:
-			absolute;
+		position: absolute;
 
 		left: 50%;
 		bottom: 23px;
@@ -3258,9 +2632,7 @@
 		transform:
 			translateX(-50%);
 
-		display:
-			flex;
-
+		display: flex;
 		gap: 4px;
 	}
 
@@ -3279,17 +2651,13 @@
 	}
 
 	.release-strips {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
-
 		z-index: 30;
 	}
 
 	.release-strip {
-		position:
-			absolute;
+		position: absolute;
 
 		height: 3px;
 
@@ -3302,86 +2670,23 @@
 			);
 
 		opacity: 0;
-	}
 
-	.r1 {
-		top: 18%;
-		left: 7%;
-		width: 52%;
-	}
-
-	.r2 {
-		top: 29%;
-		right: 5%;
-		width: 47%;
-	}
-
-	.r3 {
-		top: 42%;
-		left: -3%;
-		width: 63%;
-	}
-
-	.r4 {
-		top: 54%;
-		left: 28%;
-		width: 58%;
-	}
-
-	.r5 {
-		top: 66%;
-		right: 8%;
-		width: 51%;
-	}
-
-	.r6 {
-		top: 80%;
-		left: 12%;
-		width: 60%;
-	}
-
-	.release-strip {
 		animation:
 			release-strip
 			0.86s
-			cubic-bezier(
-				0.22,
-				1,
-				0.36,
-				1
-			)
+			cubic-bezier(0.22, 1, 0.36, 1)
 			forwards;
 	}
 
-	.r2 {
-		animation-delay:
-			0.05s;
-	}
-
-	.r3 {
-		animation-delay:
-			0.1s;
-	}
-
-	.r4 {
-		animation-delay:
-			0.15s;
-	}
-
-	.r5 {
-		animation-delay:
-			0.2s;
-	}
-
-	.r6 {
-		animation-delay:
-			0.25s;
-	}
+	.r1 { top: 18%; left: 7%; width: 52%; }
+	.r2 { top: 29%; right: 5%; width: 47%; animation-delay: 0.05s; }
+	.r3 { top: 42%; left: -3%; width: 63%; animation-delay: 0.1s; }
+	.r4 { top: 54%; left: 28%; width: 58%; animation-delay: 0.15s; }
+	.r5 { top: 66%; right: 8%; width: 51%; animation-delay: 0.2s; }
+	.r6 { top: 80%; left: 12%; width: 60%; animation-delay: 0.25s; }
 
 	.release-scan {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
 
 		z-index: 31;
@@ -3391,12 +2696,7 @@
 				180deg,
 				transparent 0,
 				transparent 5px,
-				rgba(
-					255,
-					0,
-					128,
-					0.04
-				) 6px
+				rgba(255, 0, 128, 0.04) 6px
 			);
 
 		opacity: 0;
@@ -3409,9 +2709,7 @@
 	}
 
 	.page-release {
-		position:
-			absolute;
-
+		position: absolute;
 		inset: 0;
 
 		z-index: 40;
@@ -3419,12 +2717,7 @@
 		background:
 			radial-gradient(
 				ellipse at center,
-				rgba(
-					255,
-					0,
-					128,
-					0.03
-				),
+				rgba(255, 0, 128, 0.03),
 				transparent 65%
 			);
 
@@ -3438,223 +2731,165 @@
 	}
 
 	/* =====================================================
-	   BOOT / TRANSITION KEYFRAMES
+	   KEYFRAMES
 	   ===================================================== */
 
 	@keyframes boot-in {
-		from {
-			opacity: 0;
-		}
-
-		to {
-			opacity: 1;
-		}
+		from { opacity: 0; }
+		to { opacity: 1; }
 	}
 
 	@keyframes boot-out {
 		0% {
 			opacity: 1;
-			transform:
-				scale(1);
+			transform: scale(1);
 		}
 
 		15% {
 			opacity: 1;
-			transform:
-				scale(1.002)
-				translateX(-1px);
+			transform: scale(1.002) translateX(-1px);
 		}
 
 		30% {
 			opacity: 0.98;
-			transform:
-				scale(1.005)
-				translateX(1px);
+			transform: scale(1.005) translateX(1px);
 		}
 
 		45% {
 			opacity: 0.9;
-			transform:
-				scale(1.009)
-				translateX(-2px);
+			transform: scale(1.009) translateX(-2px);
 		}
 
 		60% {
 			opacity: 0.72;
-			transform:
-				scale(1.014)
-				translateX(2px);
+			transform: scale(1.014) translateX(2px);
 		}
 
 		75% {
 			opacity: 0.5;
-			transform:
-				scale(1.021)
-				translateX(-3px);
+			transform: scale(1.021) translateX(-3px);
 		}
 
 		88% {
 			opacity: 0.22;
-			transform:
-				scale(1.032)
-				translateX(4px);
+			transform: scale(1.032) translateX(4px);
 		}
 
 		100% {
 			opacity: 0;
-			transform:
-				scale(1.04)
-				translateX(6px);
+			transform: scale(1.04) translateX(6px);
 		}
 	}
 
 	@keyframes loading-state-in {
 		0% {
 			opacity: 0;
-			transform:
-				scale(1.08);
+			transform: scale(1.08);
 		}
 
-		15% {
-			opacity: 0.03;
-		}
+		15% { opacity: 0.03; }
 
 		30% {
 			opacity: 0.12;
-			transform:
-				scale(1.05);
+			transform: scale(1.05);
 		}
 
 		45% {
 			opacity: 0.28;
-			transform:
-				scale(1.03);
+			transform: scale(1.03);
 		}
 
 		60% {
 			opacity: 0.52;
-			transform:
-				scale(1.016);
+			transform: scale(1.016);
 		}
 
 		75% {
 			opacity: 0.78;
-			transform:
-				scale(1.006);
+			transform: scale(1.006);
 		}
 
 		90% {
 			opacity: 0.96;
-			transform:
-				scale(1.001);
+			transform: scale(1.001);
 		}
 
 		100% {
 			opacity: 1;
-			transform:
-				scale(1);
+			transform: scale(1);
 		}
 	}
 
 	@keyframes loading-state-out {
 		0% {
 			opacity: 1;
-			transform:
-				scale(1);
+			transform: scale(1);
 		}
 
-		20% {
-			opacity: 0.96;
-		}
+		20% { opacity: 0.96; }
 
 		40% {
 			opacity: 0.82;
-			transform:
-				scale(1.018)
-				translateX(-1px);
+			transform: scale(1.018) translateX(-1px);
 		}
 
 		60% {
 			opacity: 0.58;
-			transform:
-				scale(1.04)
-				translateX(2px);
+			transform: scale(1.04) translateX(2px);
 		}
 
 		80% {
 			opacity: 0.3;
-			transform:
-				scale(1.065)
-				translateX(-3px);
+			transform: scale(1.065) translateX(-3px);
 		}
 
 		100% {
 			opacity: 0;
-			transform:
-				scale(1.09)
-				translateX(6px);
+			transform: scale(1.09) translateX(6px);
 		}
 	}
 
 	@keyframes boot-glitch {
 		0% {
 			opacity: 0;
-			transform:
-				translateX(-15%)
-				scaleX(0.65);
+			transform: translateX(-15%) scaleX(0.65);
 		}
 
-		10% {
-			opacity: 0.12;
-		}
+		10% { opacity: 0.12; }
 
 		20% {
 			opacity: 0.45;
-			transform:
-				translateX(-1%)
-				scaleX(0.92);
+			transform: translateX(-1%) scaleX(0.92);
 		}
 
 		30% {
 			opacity: 0.82;
-			transform:
-				translateX(4%)
-				scaleX(1.05);
+			transform: translateX(4%) scaleX(1.05);
 		}
 
 		40% {
 			opacity: 0.48;
-			transform:
-				translateX(-2%)
-				scaleX(0.94);
+			transform: translateX(-2%) scaleX(0.94);
 		}
 
 		52% {
 			opacity: 0.88;
-			transform:
-				translateX(5%)
-				scaleX(1.07);
+			transform: translateX(5%) scaleX(1.07);
 		}
 
 		64% {
 			opacity: 0.44;
-			transform:
-				translateX(-3%)
-				scaleX(0.9);
+			transform: translateX(-3%) scaleX(0.9);
 		}
 
 		76% {
 			opacity: 0.28;
-			transform:
-				translateX(8%)
-				scaleX(0.78);
+			transform: translateX(8%) scaleX(0.78);
 		}
 
 		90% {
 			opacity: 0.1;
-			transform:
-				translateX(13%)
-				scaleX(0.7);
+			transform: translateX(13%) scaleX(0.7);
 		}
 
 		100% {
@@ -3665,89 +2900,56 @@
 	@keyframes loading-ring {
 		0% {
 			opacity: 0.14;
-
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(0.82);
+			transform: translate(-50%, -50%) scale(0.82);
 		}
 
-		20% {
-			opacity: 0.24;
-		}
+		20% { opacity: 0.24; }
 
 		40% {
 			opacity: 0.43;
-
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(1);
+			transform: translate(-50%, -50%) scale(1);
 		}
 
-		60% {
-			opacity: 0.28;
-		}
-
-		80% {
-			opacity: 0.1;
-		}
+		60% { opacity: 0.28; }
+		80% { opacity: 0.1; }
 
 		100% {
 			opacity: 0;
-
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(1.22);
+			transform: translate(-50%, -50%) scale(1.22);
 		}
 	}
 
 	@keyframes loading-tear {
 		0% {
 			opacity: 0;
-			transform:
-				translateX(-8px);
+			transform: translateX(-8px);
 		}
 
-		15% {
-			opacity: 0.1;
-		}
+		15% { opacity: 0.1; }
 
 		30% {
 			opacity: 0.32;
-			transform:
-				translateX(2px);
+			transform: translateX(2px);
 		}
 
 		45% {
 			opacity: 0.78;
-			transform:
-				translateX(-2px);
+			transform: translateX(-2px);
 		}
 
 		60% {
 			opacity: 0.48;
-			transform:
-				translateX(3px);
+			transform: translateX(3px);
 		}
 
 		75% {
 			opacity: 0.3;
-			transform:
-				translateX(-1px);
+			transform: translateX(-1px);
 		}
 
 		88% {
 			opacity: 0.12;
-			transform:
-				translateX(7px);
+			transform: translateX(7px);
 		}
 
 		100% {
@@ -3756,564 +2958,348 @@
 	}
 
 	@keyframes boot-release {
-		0% {
-			opacity: 0;
-		}
+		0%,
+		68% { opacity: 0; }
 
-		68% {
-			opacity: 0;
-		}
-
-		78% {
-			opacity: 0.012;
-		}
-
-		86% {
-			opacity: 0.045;
-		}
-
-		93% {
-			opacity: 0.015;
-		}
-
-		100% {
-			opacity: 0;
-		}
+		78% { opacity: 0.012; }
+		86% { opacity: 0.045; }
+		93% { opacity: 0.015; }
+		100% { opacity: 0; }
 	}
 
 	@keyframes transition-in {
-		from {
-			opacity: 0;
-		}
-
-		to {
-			opacity: 1;
-		}
+		from { opacity: 0; }
+		to { opacity: 1; }
 	}
 
 	@keyframes transition-blur {
 		0% {
 			opacity: 0;
-
-			backdrop-filter:
-				blur(0);
-
-			transform:
-				scale(1);
+			transform: scale(1);
+			backdrop-filter: blur(0);
 		}
 
-		10% {
-			opacity: 0.04;
-		}
+		10% { opacity: 0.04; }
 
 		20% {
 			opacity: 0.12;
-
-			backdrop-filter:
-				blur(1px);
-
-			transform:
-				scale(1.001);
+			transform: scale(1.001);
+			backdrop-filter: blur(1px);
 		}
 
 		30% {
 			opacity: 0.25;
-
-			backdrop-filter:
-				blur(3px);
-
-			transform:
-				scale(1.004);
+			transform: scale(1.004);
+			backdrop-filter: blur(3px);
 		}
 
 		40% {
 			opacity: 0.42;
-
-			backdrop-filter:
-				blur(5px);
-
-			transform:
-				scale(1.008);
+			transform: scale(1.008);
+			backdrop-filter: blur(5px);
 		}
 
 		50% {
 			opacity: 0.59;
-
-			backdrop-filter:
-				blur(8px);
-
-			transform:
-				scale(1.012);
+			transform: scale(1.012);
+			backdrop-filter: blur(8px);
 		}
 
 		60% {
 			opacity: 0.74;
-
-			backdrop-filter:
-				blur(11px);
-
-			transform:
-				scale(1.017);
+			transform: scale(1.017);
+			backdrop-filter: blur(11px);
 		}
 
 		70% {
 			opacity: 0.86;
-
-			backdrop-filter:
-				blur(14px);
-
-			transform:
-				scale(1.021);
+			transform: scale(1.021);
+			backdrop-filter: blur(14px);
 		}
 
 		80% {
 			opacity: 0.92;
-
-			backdrop-filter:
-				blur(17px);
-
-			transform:
-				scale(1.026);
+			transform: scale(1.026);
+			backdrop-filter: blur(17px);
 		}
 
 		90% {
 			opacity: 0.62;
-
-			backdrop-filter:
-				blur(11px);
-
-			transform:
-				scale(1.034);
+			transform: scale(1.034);
+			backdrop-filter: blur(11px);
 		}
 
 		100% {
 			opacity: 0;
-
-			backdrop-filter:
-				blur(0);
-
-			transform:
-				scale(1.042);
+			transform: scale(1.042);
+			backdrop-filter: blur(0);
 		}
 	}
 
 	@keyframes scene-distortion {
 		0% {
 			opacity: 0;
-			transform:
-				translateY(0);
+			transform: translateY(0);
 		}
 
-		15% {
-			opacity: 0.05;
-		}
+		15% { opacity: 0.05; }
 
 		30% {
 			opacity: 0.16;
-			transform:
-				translateY(-1px);
+			transform: translateY(-1px);
 		}
 
-		45% {
-			opacity: 0.31;
-		}
+		45% { opacity: 0.31; }
 
 		60% {
 			opacity: 0.52;
-			transform:
-				translateY(2px);
+			transform: translateY(2px);
 		}
 
 		75% {
 			opacity: 0.68;
-			transform:
-				translateY(-2px);
+			transform: translateY(-2px);
 		}
 
 		90% {
 			opacity: 0.28;
-			transform:
-				translateY(1px);
+			transform: translateY(1px);
 		}
 
 		100% {
 			opacity: 0;
-			transform:
-				translateY(0);
+			transform: translateY(0);
 		}
 	}
 
 	@keyframes transition-dark {
-		0% {
-			opacity: 0;
-		}
-
-		15% {
-			opacity: 0.04;
-		}
-
-		30% {
-			opacity: 0.12;
-		}
-
-		45% {
-			opacity: 0.25;
-		}
-
-		60% {
-			opacity: 0.46;
-		}
-
-		75% {
-			opacity: 0.7;
-		}
-
-		90% {
-			opacity: 0.4;
-		}
-
-		100% {
-			opacity: 0;
-		}
+		0% { opacity: 0; }
+		15% { opacity: 0.04; }
+		30% { opacity: 0.12; }
+		45% { opacity: 0.25; }
+		60% { opacity: 0.46; }
+		75% { opacity: 0.7; }
+		90% { opacity: 0.4; }
+		100% { opacity: 0; }
 	}
 
 	@keyframes transition-strip {
 		0% {
 			opacity: 0;
-			transform:
-				translateX(-12%)
-				scaleX(0.66);
+			transform: translateX(-12%) scaleX(0.66);
 		}
 
-		8% {
-			opacity: 0.08;
-		}
-
-		16% {
-			opacity: 0.22;
-		}
+		8% { opacity: 0.08; }
+		16% { opacity: 0.22; }
 
 		24% {
 			opacity: 0.49;
-			transform:
-				translateX(-1%)
-				scaleX(0.9);
+			transform: translateX(-1%) scaleX(0.9);
 		}
 
 		32% {
 			opacity: 0.78;
-			transform:
-				translateX(3%)
-				scaleX(1.04);
+			transform: translateX(3%) scaleX(1.04);
 		}
 
 		40% {
 			opacity: 0.96;
-			transform:
-				translateX(5%)
-				scaleX(1.08);
+			transform: translateX(5%) scaleX(1.08);
 		}
 
 		48% {
 			opacity: 0.72;
-			transform:
-				translateX(-2%)
-				scaleX(0.96);
+			transform: translateX(-2%) scaleX(0.96);
 		}
 
 		56% {
 			opacity: 0.88;
-			transform:
-				translateX(4%)
-				scaleX(1.04);
+			transform: translateX(4%) scaleX(1.04);
 		}
 
 		64% {
 			opacity: 0.64;
-			transform:
-				translateX(-3%)
-				scaleX(0.92);
+			transform: translateX(-3%) scaleX(0.92);
 		}
 
 		72% {
 			opacity: 0.46;
-			transform:
-				translateX(5%)
-				scaleX(0.87);
+			transform: translateX(5%) scaleX(0.87);
 		}
 
 		80% {
 			opacity: 0.29;
-			transform:
-				translateX(8%)
-				scaleX(0.79);
+			transform: translateX(8%) scaleX(0.79);
 		}
 
 		88% {
 			opacity: 0.15;
-			transform:
-				translateX(12%)
-				scaleX(0.71);
+			transform: translateX(12%) scaleX(0.71);
 		}
 
 		96% {
 			opacity: 0.04;
-			transform:
-				translateX(16%)
-				scaleX(0.64);
+			transform: translateX(16%) scaleX(0.64);
 		}
 
 		100% {
 			opacity: 0;
-			transform:
-				translateX(20%)
-				scaleX(0.6);
+			transform: translateX(20%) scaleX(0.6);
 		}
 	}
 
 	@keyframes transition-loading {
 		0% {
 			opacity: 0;
-			transform:
-				scale(1.08);
+			transform: scale(1.08);
 		}
 
-		15% {
-			opacity: 0.03;
-		}
+		15% { opacity: 0.03; }
 
 		30% {
 			opacity: 0.12;
-			transform:
-				scale(1.05);
+			transform: scale(1.05);
 		}
 
 		45% {
 			opacity: 0.29;
-			transform:
-				scale(1.03);
+			transform: scale(1.03);
 		}
 
 		60% {
 			opacity: 0.52;
-			transform:
-				scale(1.016);
+			transform: scale(1.016);
 		}
 
 		75% {
 			opacity: 0.78;
-			transform:
-				scale(1.006);
+			transform: scale(1.006);
 		}
 
 		90% {
 			opacity: 0.96;
-			transform:
-				scale(1.001);
+			transform: scale(1.001);
 		}
 
 		100% {
 			opacity: 1;
-			transform:
-				scale(1);
+			transform: scale(1);
 		}
+	}
+
+	.transition-leaving .transition-loading {
+		animation:
+			transition-loading-leave
+			0.82s
+			ease
+			forwards;
 	}
 
 	@keyframes transition-loading-leave {
 		0% {
 			opacity: 1;
-			transform:
-				scale(1);
+			transform: scale(1);
 		}
 
-		20% {
-			opacity: 0.94;
-		}
+		20% { opacity: 0.94; }
 
 		40% {
 			opacity: 0.8;
-			transform:
-				scale(1.02)
-				translateX(-1px);
+			transform: scale(1.02) translateX(-1px);
 		}
 
 		60% {
 			opacity: 0.58;
-			transform:
-				scale(1.045)
-				translateX(2px);
+			transform: scale(1.045) translateX(2px);
 		}
 
 		80% {
 			opacity: 0.27;
-			transform:
-				scale(1.07)
-				translateX(-3px);
+			transform: scale(1.07) translateX(-3px);
 		}
 
 		100% {
 			opacity: 0;
-			transform:
-				scale(1.09)
-				translateX(6px);
+			transform: scale(1.09) translateX(6px);
 		}
 	}
 
 	@keyframes hud-ring {
 		0% {
 			opacity: 0.14;
-
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(0.82);
+			transform: translate(-50%, -50%) scale(0.82);
 		}
 
-		20% {
-			opacity: 0.24;
-		}
+		20% { opacity: 0.24; }
 
 		40% {
 			opacity: 0.43;
-
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(1);
+			transform: translate(-50%, -50%) scale(1);
 		}
 
-		60% {
-			opacity: 0.28;
-		}
-
-		80% {
-			opacity: 0.1;
-		}
+		60% { opacity: 0.28; }
+		80% { opacity: 0.1; }
 
 		100% {
 			opacity: 0;
-
-			transform:
-				translate(
-					-50%,
-					-50%
-				)
-				scale(1.22);
+			transform: translate(-50%, -50%) scale(1.22);
 		}
 	}
 
 	@keyframes release-strip {
 		0% {
 			opacity: 0;
-
-			transform:
-				translateX(-15%)
-				scaleX(0.66);
+			transform: translateX(-15%) scaleX(0.66);
 		}
 
-		15% {
-			opacity: 0.08;
-		}
+		15% { opacity: 0.08; }
 
 		30% {
 			opacity: 0.32;
-
-			transform:
-				translateX(-1%)
-				scaleX(0.9);
+			transform: translateX(-1%) scaleX(0.9);
 		}
 
 		45% {
 			opacity: 0.76;
-
-			transform:
-				translateX(3%)
-				scaleX(1.04);
+			transform: translateX(3%) scaleX(1.04);
 		}
 
 		60% {
 			opacity: 0.58;
-
-			transform:
-				translateX(-2%)
-				scaleX(0.94);
+			transform: translateX(-2%) scaleX(0.94);
 		}
 
 		75% {
 			opacity: 0.34;
-
-			transform:
-				translateX(5%)
-				scaleX(0.82);
+			transform: translateX(5%) scaleX(0.82);
 		}
 
 		90% {
 			opacity: 0.12;
-
-			transform:
-				translateX(12%)
-				scaleX(0.7);
+			transform: translateX(12%) scaleX(0.7);
 		}
 
 		100% {
 			opacity: 0;
-
-			transform:
-				translateX(21%)
-				scaleX(0.6);
+			transform: translateX(21%) scaleX(0.6);
 		}
 	}
 
 	@keyframes release-scan {
-		0% {
-			opacity: 0;
-		}
-
-		30% {
-			opacity: 0.04;
-		}
-
-		55% {
-			opacity: 0.15;
-		}
-
-		75% {
-			opacity: 0.08;
-		}
-
-		100% {
-			opacity: 0;
-		}
+		0% { opacity: 0; }
+		30% { opacity: 0.04; }
+		55% { opacity: 0.15; }
+		75% { opacity: 0.08; }
+		100% { opacity: 0; }
 	}
 
 	@keyframes page-release {
-		0% {
-			opacity: 0;
-		}
-
-		35% {
-			opacity: 0;
-		}
-
-		55% {
-			opacity: 0.008;
-		}
-
-		72% {
-			opacity: 0.028;
-		}
-
-		88% {
-			opacity: 0.012;
-		}
-
-		100% {
-			opacity: 0;
-		}
+		0% { opacity: 0; }
+		35% { opacity: 0; }
+		55% { opacity: 0.008; }
+		72% { opacity: 0.028; }
+		88% { opacity: 0.012; }
+		100% { opacity: 0; }
 	}
 
 	/* =====================================================
@@ -4321,12 +3307,11 @@
 	   ===================================================== */
 
 	@media (max-width: 900px) {
-		.top-left-system {
-			left: 24px;
-		}
-
-		.top-right-system {
-			right: 24px;
+		.home-button {
+			left: 3%;
+			top: 2.5%;
+			width: 215px;
+			height: 90px;
 		}
 
 		.edge-radar,
@@ -4344,21 +3329,11 @@
 	}
 
 	@media (max-width: 650px) {
-		.signature {
-			right: 16px;
-			bottom: 14px;
-
-			width: 135px;
-		}
-
-		.global-hud {
-			opacity: 0.68;
-		}
-
-		.top-left-system {
-			width: 145px;
-
-			font-size: 5px;
+		.home-button {
+			left: 4%;
+			top: 2.5%;
+			width: 175px;
+			height: 75px;
 		}
 
 		.edge-radar,
@@ -4379,13 +3354,22 @@
 		}
 	}
 
-	/* =====================================================
-	   REDUCED MOTION
-	   ===================================================== */
-
 	@media (prefers-reduced-motion: reduce) {
 		.global-hud * {
 			animation: none !important;
+		}
+
+		.home-button:hover,
+		.home-button:focus-visible {
+			transform: none;
+			filter: none;
+		}
+
+		.signature-pink,
+		.signature-white,
+		.signature-scan,
+		.signature-noise {
+			display: none;
 		}
 
 		.boot-transition,

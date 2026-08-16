@@ -12,117 +12,110 @@
 </svelte:head>
 
 <div class="home">
-	<!-- =================================================
-	     BACKGROUND
-	     ================================================= -->
-
 	<div class="background"></div>
 
 	<div class="background-shade"></div>
 
-	<!-- Interactive mouse / halftone layer -->
 	<InteractiveAscii />
 
-	<!-- =================================================
-	     PAGE INTERFACE
-	     ================================================= -->
-
 	<div class="interface">
-		<!-- =============================================
-		     SYSTEM INFORMATION
-		     ============================================= -->
-
-		<div class="system-info">
-			<div class="system-heading">
-				SYSTEMS UPDATING<span class="loading-dots">
-					<span>.</span><span>.</span><span>.</span>
-				</span>
-			</div>
-
-			<div>
-				University of Southern California
-			</div>
-
-			<div>
-				Mechanical Engineering
-			</div>
-
-			<div>
-				Vietnamese American
-			</div>
-		</div>
-
-		<!-- =============================================
-		     PORTRAIT TARGET FRAME
-		     ============================================= -->
-
-		<div class="portrait-frame">
-			<div class="portrait-label">
-				ANI_LE v1
-			</div>
-
-			<!-- White technical corner markers -->
-
-			<div class="portrait-corner top-left"></div>
-			<div class="portrait-corner top-right"></div>
-			<div class="portrait-corner bottom-left"></div>
-			<div class="portrait-corner bottom-right"></div>
-
-			<!-- Tiny interface details -->
-
-			<div class="frame-index frame-index-left">
-				01
-			</div>
-
-			<div class="frame-index frame-index-right">
-				09
-			</div>
-		</div>
-
-		<!-- =============================================
-		     NAVIGATION
-		     ============================================= -->
+		<!-- RIGHT-SIDE NAVIGATION -->
 
 		<nav
 			class="navigation"
 			aria-label="Main navigation"
 		>
 			<a href="/about">
+				<span class="nav-index">
+					01
+				</span>
+
 				<span class="arrow">
 					&gt;
 				</span>
 
-				<span>
+				<span class="label">
 					ABOUT
 				</span>
+
+				<span class="nav-line"></span>
 			</a>
 
 			<a href="/projects">
+				<span class="nav-index">
+					02
+				</span>
+
 				<span class="arrow">
 					&gt;
 				</span>
 
-				<span>
+				<span class="label">
 					PROJECTS
 				</span>
+
+				<span class="nav-line"></span>
 			</a>
 
 			<a href="/contact">
+				<span class="nav-index">
+					03
+				</span>
+
 				<span class="arrow">
 					&gt;
 				</span>
 
-				<span>
+				<span class="label">
 					CONTACT
 				</span>
+
+				<span class="nav-line"></span>
 			</a>
 		</nav>
+
+		<!-- RIGHT-SIDE DATA -->
+
+		<div class="navigation-data">
+			<div class="data-title">
+				DIRECTORY
+			</div>
+
+			<div class="data-rule"></div>
+
+			<div class="data-row">
+				<span>SYS</span>
+				<span>ACTIVE</span>
+			</div>
+
+			<div class="data-row">
+				<span>MODE</span>
+				<span>01</span>
+			</div>
+
+			<div class="data-row">
+				<span>LINK</span>
+				<span>ONLINE</span>
+			</div>
+		</div>
+
+		<!-- CENTER TECHNICAL MARK -->
+
+		<div class="center-marker">
+			<div class="marker-horizontal"></div>
+			<div class="marker-vertical"></div>
+
+			<div class="marker-ring outer"></div>
+			<div class="marker-ring inner"></div>
+
+			<div class="marker-dot"></div>
+		</div>
 	</div>
 </div>
 
 <style>
 	/* =====================================================
-	   SHARED INTERFACE COLOR
+	   SHARED HUD COLOR
 	   ===================================================== */
 
 	:global(:root) {
@@ -228,23 +221,23 @@
 					0,
 					0,
 					0,
-					0.05
+					0.04
 				)
 				0%,
 				transparent
-				40%,
+				38%,
 				rgba(
 					0,
 					0,
 					0,
 					0.08
 				)
-				72%,
+				65%,
 				rgba(
 					0,
 					0,
 					0,
-					0.3
+					0.45
 				)
 				100%
 			),
@@ -255,15 +248,13 @@
 					0,
 					0,
 					0.06
-				)
-				0%,
-				transparent
-				58%,
+				),
+				transparent 58%,
 				rgba(
 					0,
 					0,
 					0,
-					0.15
+					0.14
 				)
 				100%
 			);
@@ -285,296 +276,22 @@
 	}
 
 	/* =====================================================
-	   SYSTEM INFORMATION
-	   ===================================================== */
-
-	.system-info {
-		position: absolute;
-
-		top: 5.3%;
-		left: 2.8%;
-
-		color:
-			rgba(
-				255,
-				255,
-				255,
-				0.92
-			);
-
-		font-family:
-			'Courier New',
-			Courier,
-			monospace;
-
-		font-size:
-			clamp(
-				10px,
-				0.78vw,
-				14px
-			);
-
-		line-height: 1.55;
-
-		letter-spacing:
-			0.01em;
-
-		text-shadow:
-			0 2px 5px
-			rgba(
-				0,
-				0,
-				0,
-				0.95
-			);
-
-		animation:
-			system-idle
-			4.7s
-			steps(2, end)
-			infinite;
-	}
-
-	.system-heading {
-		white-space: nowrap;
-	}
-
-	.loading-dots span {
-		display: inline-block;
-
-		animation:
-			dot-blink
-			1.35s
-			steps(1, end)
-			infinite;
-	}
-
-	.loading-dots span:nth-child(2) {
-		animation-delay:
-			0.18s;
-	}
-
-	.loading-dots span:nth-child(3) {
-		animation-delay:
-			0.36s;
-	}
-
-	/* =====================================================
-	   PORTRAIT FRAME
-
-	   IMPORTANT:
-	   Same pink and same 1px line weight as the HUD.
-	   ===================================================== */
-
-	.portrait-frame {
-		position: absolute;
-
-		left: 49%;
-		top: 18.5%;
-
-		width: 28.5%;
-		height: 49.5%;
-
-		/*
-		 * This is intentionally 1px now.
-		 *
-		 * It matches the outer technical HUD instead
-		 * of looking like a separate heavy box.
-		 */
-		border:
-			1px solid
-			var(--hud-pink);
-
-		/*
-		 * No heavy red/pink glow.
-		 *
-		 * Just a tiny technical signal presence.
-		 */
-		box-shadow:
-			0 0 3px
-			rgba(
-				255,
-				0,
-				128,
-				0.08
-			);
-
-		pointer-events: none;
-	}
-
-	/* =====================================================
-	   PORTRAIT LABEL
-	   ===================================================== */
-
-	.portrait-label {
-		position: absolute;
-
-		left: -1px;
-		top: -48px;
-
-		min-width: 140px;
-		height: 48px;
-
-		display: flex;
-
-		align-items: center;
-
-		padding:
-			0 17px;
-
-		/*
-		 * Same exact interface pink.
-		 */
-		background:
-			var(--hud-pink);
-
-		color: #fff;
-
-		font-family:
-			'Courier New',
-			Courier,
-			monospace;
-
-		font-size:
-			clamp(
-				13px,
-				1vw,
-				18px
-			);
-
-		letter-spacing:
-			0.04em;
-
-		/*
-		 * Thin technical edge.
-		 */
-		border:
-			1px solid
-			var(--hud-pink);
-
-		border-bottom: 0;
-	}
-
-	/* =====================================================
-	   PORTRAIT CORNERS
-	   ===================================================== */
-
-	.portrait-corner {
-		position: absolute;
-
-		width: 13px;
-		height: 13px;
-
-		border-color:
-			rgba(
-				255,
-				255,
-				255,
-				0.88
-			);
-	}
-
-	.portrait-corner.top-left {
-		left: -1px;
-		top: -1px;
-
-		border-left:
-			1px solid;
-
-		border-top:
-			1px solid;
-	}
-
-	.portrait-corner.top-right {
-		right: -1px;
-		top: -1px;
-
-		border-right:
-			1px solid;
-
-		border-top:
-			1px solid;
-	}
-
-	.portrait-corner.bottom-left {
-		left: -1px;
-		bottom: -1px;
-
-		border-left:
-			1px solid;
-
-		border-bottom:
-			1px solid;
-	}
-
-	.portrait-corner.bottom-right {
-		right: -1px;
-		bottom: -1px;
-
-		border-right:
-			1px solid;
-
-		border-bottom:
-			1px solid;
-	}
-
-	/* =====================================================
-	   SMALL FRAME INDEXES
-	   ===================================================== */
-
-	.frame-index {
-		position: absolute;
-
-		bottom: 8px;
-
-		color:
-			rgba(
-				255,
-				0,
-				128,
-				0.42
-			);
-
-		font-family:
-			'Courier New',
-			Courier,
-			monospace;
-
-		font-size: 5px;
-
-		letter-spacing:
-			0.12em;
-	}
-
-	.frame-index-left {
-		left: 8px;
-	}
-
-	.frame-index-right {
-		right: 8px;
-	}
-
-	/* =====================================================
-	   NAVIGATION
+	   RIGHT NAVIGATION
 	   ===================================================== */
 
 	.navigation {
 		position: absolute;
 
-		/*
-		 * Exact same left edge as portrait box.
-		 */
-		left: 49%;
-
-		top: 69.5%;
+		right: 8.7%;
+		top: 43%;
 
 		display: flex;
-
 		flex-direction: column;
-
 		align-items: flex-start;
 
-		gap: 11px;
+		gap: 18px;
+
+		width: 210px;
 
 		pointer-events: auto;
 	}
@@ -582,21 +299,21 @@
 	.navigation a {
 		position: relative;
 
-		display: flex;
+		display: grid;
+
+		grid-template-columns:
+			28px
+			20px
+			auto;
 
 		align-items: center;
 
-		min-height: 20px;
+		width: 100%;
+
+		min-height: 26px;
 
 		color:
-			rgba(
-				255,
-				255,
-				255,
-				0.92
-			);
-
-		text-decoration: none;
+			var(--hud-pink);
 
 		font-family:
 			'Courier New',
@@ -605,15 +322,16 @@
 
 		font-size:
 			clamp(
-				10px,
+				11px,
 				0.82vw,
-				14px
+				15px
 			);
 
 		font-weight: 600;
 
-		letter-spacing:
-			0.015em;
+		letter-spacing: 0.08em;
+
+		text-decoration: none;
 
 		text-shadow:
 			0 2px 5px
@@ -623,31 +341,70 @@
 				0,
 				0.95
 			);
+
+		cursor: pointer;
+
+		transition:
+			color
+			120ms
+			ease;
 	}
 
-	.navigation .arrow {
+	.nav-index {
+		color:
+			var(--hud-pink-soft);
+
+		font-size: 7px;
+
+		letter-spacing: 0.12em;
+	}
+
+	.arrow {
+		color: #fff;
+
 		width: 0;
 
 		overflow: hidden;
 
-		color:
-			var(--hud-pink);
-
 		opacity: 0;
 
 		transform:
-			translateX(-5px);
+			translateX(-7px);
 
 		transition:
 			width
-				120ms
-				ease,
+			140ms
+			ease,
 			opacity
-				80ms
-				linear,
+			100ms
+			linear,
 			transform
-				120ms
-				ease;
+			140ms
+			ease;
+	}
+
+	.label {
+		white-space: nowrap;
+	}
+
+	.nav-line {
+		position: absolute;
+
+		left: 0;
+		bottom: -7px;
+
+		width: 0;
+		height: 1px;
+
+		background:
+			var(--hud-pink);
+
+		opacity: 0.36;
+
+		transition:
+			width
+			180ms
+			ease;
 	}
 
 	.navigation a:hover,
@@ -659,14 +416,14 @@
 
 		animation:
 			nav-glitch
-			260ms
+			270ms
 			steps(2, end)
 			1;
 	}
 
 	.navigation a:hover .arrow,
 	.navigation a:focus-visible .arrow {
-		width: 16px;
+		width: 17px;
 
 		opacity: 1;
 
@@ -674,95 +431,198 @@
 			translateX(0);
 	}
 
-	/* =====================================================
-	   SYSTEM ANIMATION
-	   ===================================================== */
-
-	@keyframes system-idle {
-		0%,
-		82%,
-		100% {
-			opacity: 0.92;
-
-			transform:
-				translate(
-					0,
-					0
-				);
-
-			text-shadow:
-				0 2px 5px
-				rgba(
-					0,
-					0,
-					0,
-					0.95
-				);
-		}
-
-		84% {
-			opacity: 0.68;
-
-			transform:
-				translateX(-1px);
-
-			text-shadow:
-				2px 0
-				rgba(
-					255,
-					0,
-					128,
-					0.32
-				);
-		}
-
-		86% {
-			opacity: 1;
-
-			transform:
-				translateX(2px);
-
-			text-shadow:
-				-2px 0
-				rgba(
-					255,
-					0,
-					128,
-					0.35
-				);
-		}
-
-		88% {
-			opacity: 0.76;
-
-			transform:
-				translate(
-					-1px,
-					1px
-				);
-		}
-
-		90% {
-			opacity: 0.94;
-
-			transform:
-				translate(
-					0,
-					0
-				);
-		}
+	.navigation a:hover .nav-line,
+	.navigation a:focus-visible .nav-line {
+		width: 100%;
 	}
 
-	@keyframes dot-blink {
-		0%,
-		24% {
-			opacity: 0.15;
-		}
+	.navigation a:hover .nav-index,
+	.navigation a:focus-visible .nav-index {
+		color:
+			var(--hud-pink);
+	}
 
-		25%,
-		100% {
-			opacity: 1;
-		}
+	/* =====================================================
+	   RIGHT-SIDE DATA
+	   ===================================================== */
+
+	.navigation-data {
+		position: absolute;
+
+		right: 8.7%;
+		top: 30%;
+
+		width: 210px;
+
+		padding:
+			10px 12px;
+
+		border-left:
+			1px solid
+			var(--hud-pink-soft);
+
+		border-top:
+			1px solid
+			rgba(
+				255,
+				0,
+				128,
+				0.2
+			);
+
+		color:
+			var(--hud-pink-soft);
+
+		font-family:
+			'Courier New',
+			Courier,
+			monospace;
+
+		pointer-events: none;
+
+		animation:
+			data-idle
+			5.4s
+			steps(3, end)
+			infinite;
+	}
+
+	.data-title {
+		font-size: 7px;
+
+		letter-spacing:
+			0.18em;
+	}
+
+	.data-rule {
+		width: 100%;
+		height: 1px;
+
+		margin:
+			7px 0;
+
+		background:
+			var(--hud-pink-soft);
+	}
+
+	.data-row {
+		display: flex;
+
+		justify-content:
+			space-between;
+
+		margin-top: 4px;
+
+		font-size: 6px;
+
+		letter-spacing:
+			0.08em;
+	}
+
+	/* =====================================================
+	   CENTER MARKER
+	   ===================================================== */
+
+	.center-marker {
+		position: absolute;
+
+		left: 52%;
+		top: 47%;
+
+		width: 52px;
+		height: 52px;
+
+		transform:
+			translate(
+				-50%,
+				-50%
+			);
+
+		opacity: 0.16;
+
+		animation:
+			center-idle
+			4.8s
+			ease-in-out
+			infinite;
+	}
+
+	.marker-horizontal {
+		position: absolute;
+
+		left: 0;
+		right: 0;
+
+		top: 50%;
+
+		height: 1px;
+
+		background:
+			var(--hud-pink);
+	}
+
+	.marker-vertical {
+		position: absolute;
+
+		top: 0;
+		bottom: 0;
+
+		left: 50%;
+
+		width: 1px;
+
+		background:
+			var(--hud-pink);
+	}
+
+	.marker-ring {
+		position: absolute;
+
+		left: 50%;
+		top: 50%;
+
+		border:
+			1px solid
+			var(--hud-pink);
+
+		border-radius: 50%;
+
+		transform:
+			translate(
+				-50%,
+				-50%
+			);
+	}
+
+	.marker-ring.outer {
+		width: 42px;
+		height: 42px;
+	}
+
+	.marker-ring.inner {
+		width: 17px;
+		height: 17px;
+	}
+
+	.marker-dot {
+		position: absolute;
+
+		left: 50%;
+		top: 50%;
+
+		width: 3px;
+		height: 3px;
+
+		background:
+			var(--hud-pink);
+
+		border-radius: 50%;
+
+		transform:
+			translate(
+				-50%,
+				-50%
+			);
 	}
 
 	/* =====================================================
@@ -781,7 +641,7 @@
 		20% {
 			transform:
 				translate(
-					-1px,
+					-2px,
 					0
 				);
 
@@ -791,7 +651,7 @@
 					255,
 					0,
 					128,
-					0.7
+					0.72
 				);
 		}
 
@@ -808,7 +668,7 @@
 					255,
 					255,
 					255,
-					0.4
+					0.35
 				);
 		}
 
@@ -837,54 +697,104 @@
 		}
 	}
 
+	@keyframes data-idle {
+		0%,
+		84%,
+		100% {
+			opacity: 0.72;
+
+			transform:
+				translate(
+					0,
+					0
+				);
+		}
+
+		86% {
+			opacity: 0.38;
+
+			transform:
+				translateX(-2px);
+		}
+
+		88% {
+			opacity: 0.94;
+
+			transform:
+				translateX(2px);
+		}
+
+		90% {
+			opacity: 0.55;
+
+			transform:
+				translateX(-1px);
+		}
+
+		92% {
+			opacity: 0.72;
+
+			transform:
+				translate(
+					0,
+					0
+				);
+		}
+	}
+
+	@keyframes center-idle {
+		0%,
+		100% {
+			opacity: 0.12;
+
+			transform:
+				translate(
+					-50%,
+					-50%
+				)
+				scale(0.96);
+		}
+
+		50% {
+			opacity: 0.25;
+
+			transform:
+				translate(
+					-50%,
+					-50%
+				)
+				scale(1.04);
+		}
+	}
+
 	/* =====================================================
 	   RESPONSIVE
 	   ===================================================== */
 
 	@media (max-width: 1100px) {
-		.portrait-frame {
-			left: 45%;
-
-			width: 34%;
-		}
-
-		.navigation {
-			left: 45%;
+		.navigation,
+		.navigation-data {
+			right: 6%;
 		}
 	}
 
 	@media (max-width: 800px) {
-		.system-info {
-			top: 60px;
-			left: 28px;
-		}
-
-		.portrait-frame {
-			left: 36%;
-
-			top: 23%;
-
-			width: 48%;
-			height: 46%;
-		}
-
 		.navigation {
-			left: 36%;
+			right: 8%;
+			top: 46%;
 
-			top: 71%;
+			width: 175px;
 		}
 
-		.portrait-label {
-			height: 38px;
+		.navigation-data {
+			right: 8%;
+			top: 32%;
 
-			top: -38px;
+			width: 175px;
+		}
 
-			min-width: 115px;
-
-			padding:
-				0 12px;
-
-			font-size: 13px;
+		.center-marker {
+			left: 50%;
 		}
 	}
 
@@ -893,40 +803,28 @@
 			min-height: 600px;
 		}
 
-		.system-info {
-			top: 50px;
-			left: 22px;
-
-			font-size: 8px;
-		}
-
-		.portrait-frame {
-			left: 22%;
-
-			top: 27%;
-
-			width: 62%;
-			height: 40%;
-		}
-
 		.navigation {
-			left: 22%;
+			right: 9%;
+			top: 43%;
 
-			top: 70%;
+			width: 150px;
+
+			gap: 14px;
+		}
+
+		.navigation-data {
+			right: 9%;
+			top: 29%;
+
+			width: 150px;
 		}
 
 		.navigation a {
 			font-size: 10px;
 		}
 
-		.portrait-label {
-			height: 32px;
-
-			top: -32px;
-
-			min-width: 100px;
-
-			font-size: 11px;
+		.navigation-data {
+			padding: 8px;
 		}
 	}
 </style>
