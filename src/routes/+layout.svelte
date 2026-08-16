@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import {
-		onNavigate,
-		afterNavigate
+		afterNavigate,
+		onNavigate
 	} from '$app/navigation';
 	import type { Snippet } from 'svelte';
 
@@ -29,8 +29,8 @@
 			window.setTimeout(() => {
 				booting = false;
 				bootExiting = false;
-			}, 1050);
-		}, 2500);
+			}, 1000);
+		}, 2200);
 
 		return () => {
 			window.clearTimeout(timer);
@@ -42,16 +42,27 @@
 	   ===================================================== */
 
 	onNavigate((navigation) => {
+		/*
+		 * Don't run the route transition for the initial
+		 * page load. The boot animation handles that.
+		 */
 		if (!navigation.from) {
 			return;
 		}
 
 		pendingPageTransition = true;
+
 		transitioning = true;
 		transitionLeaving = false;
 
+		/*
+		 * Hold navigation very briefly so the first half
+		 * of the glitch can cover the old page.
+		 */
 		return new Promise<void>((resolve) => {
-			window.setTimeout(resolve, 500);
+			window.setTimeout(() => {
+				resolve();
+			}, 430);
 		});
 	});
 
@@ -68,8 +79,8 @@
 			window.setTimeout(() => {
 				transitioning = false;
 				transitionLeaving = false;
-			}, 820);
-		}, 70);
+			}, 720);
+		}, 60);
 	});
 </script>
 
@@ -83,32 +94,48 @@
 <div class="site">
 
 	<!-- =================================================
-	     GLOBAL CURSOR
+	     GLOBAL CURSOR SYSTEM
+
+	     KEEP THIS HERE.
+
+	     Because this is +layout.svelte, CursorHUD is now
+	     mounted ONCE and persists across:
+	     /
+	     /about
+	     /projects
+	     /contact
+	     /skills
+	     and future routes.
+
+	     CursorHUD provides:
+	     --cursor-x
+	     --cursor-y
+	     --cursor-intensity
+	     --cursor-vx
+	     --cursor-vy
 	     ================================================= -->
 
 	<CursorHUD />
 
 	<!-- =================================================
-	     GLOBAL HOME BUTTON
+	     GLOBAL HOME / SIGNATURE BUTTON
 	     ================================================= -->
 
 	<a
 		class="home-button"
 		href="/"
-		aria-label="Home"
+		aria-label="Return home"
 		title="Home"
 	>
-		<!-- Base signature -->
-		<span class="signature-layer signature-base">
+		<span class="signature-base">
 			<img
 				src="/signature.png"
-				alt="Anihie"
+				alt="Ani"
 			/>
 		</span>
 
-		<!-- Pink glitch duplicate -->
 		<span
-			class="signature-layer signature-pink"
+			class="signature-glitch signature-glitch-a"
 			aria-hidden="true"
 		>
 			<img
@@ -117,9 +144,8 @@
 			/>
 		</span>
 
-		<!-- White glitch duplicate -->
 		<span
-			class="signature-layer signature-white"
+			class="signature-glitch signature-glitch-b"
 			aria-hidden="true"
 		>
 			<img
@@ -128,51 +154,47 @@
 			/>
 		</span>
 
-		<!-- Scan line -->
 		<span
 			class="signature-scan"
-			aria-hidden="true"
-		></span>
-
-		<!-- Noise -->
-		<span
-			class="signature-noise"
 			aria-hidden="true"
 		></span>
 	</a>
 
 	<!-- =================================================
-	     PAGE CONTENT
+	     ALL ROUTES RENDER HERE
+
+	     Home, About, Projects, Contact, etc.
 	     ================================================= -->
 
-	{@render children()}
+	<div class="route-content">
+		{@render children()}
+	</div>
 
 	<!-- =================================================
-	     GLOBAL HUD
+	     GLOBAL CYBER UI BORDER
 	     ================================================= -->
 
 	<div
 		class="global-hud"
 		aria-hidden="true"
 	>
-		<!-- BORDER -->
+		<!-- MAIN BORDER -->
 
-		<div class="hud-border top"></div>
-		<div class="hud-border right"></div>
-		<div class="hud-border bottom"></div>
-		<div class="hud-border left"></div>
+		<div class="hud-border hud-top"></div>
+		<div class="hud-border hud-right"></div>
+		<div class="hud-border hud-bottom"></div>
+		<div class="hud-border hud-left"></div>
 
-		<!-- TOP SIGNAL -->
+		<!-- TOP CENTER -->
 
-		<div class="top-signal">
-			<div class="top-signal-line"></div>
+		<div class="top-system">
+			<div class="top-line"></div>
 
-			<div class="top-signal-node n1"></div>
-			<div class="top-signal-node n2"></div>
-			<div class="top-signal-node n3"></div>
+			<div class="top-node node-a"></div>
+			<div class="top-node node-b"></div>
+			<div class="top-node node-c"></div>
 
-			<div class="top-signal-bars">
-				<span></span>
+			<div class="top-bars">
 				<span></span>
 				<span></span>
 				<span></span>
@@ -183,16 +205,14 @@
 			</div>
 		</div>
 
-		<!-- TOP RIGHT SYSTEM -->
+		<!-- TOP RIGHT -->
 
-		<div class="edge-system top-right-system">
-			<div class="system-box-title">
+		<div class="system-module">
+			<div class="system-label">
 				SYS
 			</div>
 
-			<div class="system-box-data">
-				<span></span>
-				<span></span>
+			<div class="system-bars">
 				<span></span>
 				<span></span>
 				<span></span>
@@ -201,71 +221,77 @@
 				<span></span>
 			</div>
 
-			<div class="system-box-status">
+			<div class="system-status">
 				01 / ONLINE
 			</div>
 		</div>
 
 		<!-- LEFT RADAR -->
 
-		<div class="edge-radar left-radar">
-			<div class="radar-circle outer"></div>
-			<div class="radar-circle middle"></div>
-			<div class="radar-circle inner"></div>
+		<div class="radar radar-left">
+			<div class="radar-ring radar-ring-a"></div>
+			<div class="radar-ring radar-ring-b"></div>
+			<div class="radar-ring radar-ring-c"></div>
 
-			<div class="radar-cross horizontal"></div>
-			<div class="radar-cross vertical"></div>
+			<div class="radar-horizontal"></div>
+			<div class="radar-vertical"></div>
 
 			<div class="radar-sweep"></div>
-			<div class="radar-point"></div>
+
+			<div class="radar-dot"></div>
 		</div>
 
 		<!-- RIGHT RADAR -->
 
-		<div class="edge-radar right-radar">
-			<div class="radar-circle outer"></div>
-			<div class="radar-circle middle"></div>
-			<div class="radar-circle inner"></div>
+		<div class="radar radar-right">
+			<div class="radar-ring radar-ring-a"></div>
+			<div class="radar-ring radar-ring-b"></div>
+			<div class="radar-ring radar-ring-c"></div>
 
-			<div class="radar-cross horizontal"></div>
-			<div class="radar-cross vertical"></div>
+			<div class="radar-horizontal"></div>
+			<div class="radar-vertical"></div>
 
 			<div class="radar-sweep"></div>
-			<div class="radar-point"></div>
+
+			<div class="radar-dot"></div>
 		</div>
 
-		<!-- LEFT RAIL -->
+		<!-- LEFT DATA RAIL -->
 
-		<div class="data-rail left-rail">
-			<div class="rail-number">03</div>
+		<div class="data-rail data-left">
+			<div class="rail-number">
+				03
+			</div>
 
-			<div class="rail-track"></div>
+			<div class="rail-line"></div>
 
-			<div class="rail-point"></div>
-			<div class="rail-point"></div>
-			<div class="rail-point"></div>
-			<div class="rail-point"></div>
+			<span class="rail-dot"></span>
+			<span class="rail-dot"></span>
+			<span class="rail-dot"></span>
+			<span class="rail-dot"></span>
 
-			<div class="rail-data">
+			<div class="rail-code">
 				<span>021</span>
 				<span>442</span>
 				<span>009</span>
 			</div>
 		</div>
 
-		<!-- RIGHT RAIL -->
+		<!-- RIGHT DATA RAIL -->
 
-		<div class="data-rail right-rail">
-			<div class="rail-number">08</div>
+		<div class="data-rail data-right">
+			<div class="rail-number">
+				08
+			</div>
 
-			<div class="rail-track"></div>
+			<div class="rail-line"></div>
 
-			<div class="rail-point"></div>
-			<div class="rail-point"></div>
-			<div class="rail-point"></div>
-			<div class="rail-point"></div>
+			<span class="rail-dot"></span>
+			<span class="rail-dot"></span>
+			<span class="rail-dot"></span>
+			<span class="rail-dot"></span>
 
-			<div class="rail-data">
+			<div class="rail-code">
 				<span>042</span>
 				<span>117</span>
 				<span>903</span>
@@ -275,14 +301,11 @@
 		<!-- BOTTOM LEFT -->
 
 		<div class="bottom-module bottom-left-module">
-			<div class="module-heading">
+			<div class="bottom-title">
 				CORE / 02
 			</div>
 
-			<div class="module-bar-grid">
-				<span></span>
-				<span></span>
-				<span></span>
+			<div class="bottom-bars">
 				<span></span>
 				<span></span>
 				<span></span>
@@ -291,21 +314,21 @@
 				<span></span>
 			</div>
 
-			<div class="module-rule"></div>
+			<div class="bottom-rule"></div>
 
-			<div class="module-small-text">
+			<div class="bottom-small">
 				SYSTEM READY
 			</div>
 		</div>
 
-		<!-- BOTTOM STREAM -->
+		<!-- BOTTOM CENTER -->
 
 		<div class="bottom-stream">
-			<div class="stream-rule"></div>
+			<div class="stream-line"></div>
 
-			<div class="stream-node start"></div>
-			<div class="stream-node middle"></div>
-			<div class="stream-node end"></div>
+			<div class="stream-node stream-start"></div>
+			<div class="stream-node stream-middle"></div>
+			<div class="stream-node stream-end"></div>
 
 			<div class="stream-bars">
 				<span></span>
@@ -316,12 +339,9 @@
 				<span></span>
 				<span></span>
 				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
 			</div>
 
-			<div class="stream-label">
+			<div class="stream-text">
 				LINK ESTABLISHED
 			</div>
 		</div>
@@ -329,16 +349,15 @@
 		<!-- BOTTOM RIGHT -->
 
 		<div class="bottom-module bottom-right-module">
-			<div class="module-heading">
+			<div class="bottom-title">
 				STATUS
 			</div>
 
-			<div class="module-status-code">
+			<div class="bottom-small">
 				01-09 / ACTIVE
 			</div>
 
-			<div class="module-bar-grid compact">
-				<span></span>
+			<div class="bottom-bars compact">
 				<span></span>
 				<span></span>
 				<span></span>
@@ -347,130 +366,81 @@
 			</div>
 		</div>
 
-		<!-- BOTTOM CIRCUIT -->
+		<!-- CORNERS -->
 
-		<div class="bottom-circuit">
-			<div class="bottom-circuit-main"></div>
-
-			<div class="bottom-circuit-branch branch-a"></div>
-			<div class="bottom-circuit-branch branch-b"></div>
-			<div class="bottom-circuit-branch branch-c"></div>
-
-			<div class="bottom-circuit-point point-a"></div>
-			<div class="bottom-circuit-point point-b"></div>
-			<div class="bottom-circuit-point point-c"></div>
+		<div class="corner corner-tl">
+			<div class="corner-long"></div>
+			<div class="corner-short"></div>
+			<div class="corner-dot"></div>
 		</div>
 
-		<!-- CORNER DATA -->
-
-		<div class="corner-cluster corner-cluster-tl">
-			<span></span>
-			<span></span>
-			<span></span>
-			<span></span>
-			<span></span>
+		<div class="corner corner-tr">
+			<div class="corner-long"></div>
+			<div class="corner-short"></div>
+			<div class="corner-dot"></div>
 		</div>
 
-		<div class="corner-cluster corner-cluster-tr">
-			<span></span>
-			<span></span>
-			<span></span>
-			<span></span>
-			<span></span>
+		<div class="corner corner-bl">
+			<div class="corner-long"></div>
+			<div class="corner-short"></div>
+			<div class="corner-dot"></div>
 		</div>
 
-		<div class="corner-cluster corner-cluster-bl">
-			<span></span>
-			<span></span>
-			<span></span>
-		</div>
-
-		<div class="corner-cluster corner-cluster-br">
-			<span></span>
-			<span></span>
-			<span></span>
-		</div>
-
-		<!-- CORNER BRACKETS -->
-
-		<div class="corner-bracket bracket-tl">
-			<div class="bracket-line main"></div>
-			<div class="bracket-line short"></div>
-			<div class="bracket-node"></div>
-		</div>
-
-		<div class="corner-bracket bracket-tr">
-			<div class="bracket-line main"></div>
-			<div class="bracket-line short"></div>
-			<div class="bracket-node"></div>
-		</div>
-
-		<div class="corner-bracket bracket-bl">
-			<div class="bracket-line main"></div>
-			<div class="bracket-line short"></div>
-			<div class="bracket-node"></div>
-		</div>
-
-		<div class="corner-bracket bracket-br">
-			<div class="bracket-line main"></div>
-			<div class="bracket-line short"></div>
-			<div class="bracket-node"></div>
+		<div class="corner corner-br">
+			<div class="corner-long"></div>
+			<div class="corner-short"></div>
+			<div class="corner-dot"></div>
 		</div>
 	</div>
 
 	<!-- =================================================
-	     BOOT
+	     INITIAL BOOT SCREEN
 	     ================================================= -->
 
 	{#if booting}
 		<div
 			class:boot-exiting={bootExiting}
-			class="boot-transition"
+			class="boot-screen"
 			aria-hidden="true"
 		>
-			<div class="boot-scene"></div>
-			<div class="boot-scene-blur"></div>
-			<div class="boot-dark"></div>
+			<div class="boot-grid"></div>
+			<div class="boot-vignette"></div>
 
-			<div class="boot-glitch-field">
-				<div class="boot-glitch g1"></div>
-				<div class="boot-glitch g2"></div>
-				<div class="boot-glitch g3"></div>
-				<div class="boot-glitch g4"></div>
-				<div class="boot-glitch g5"></div>
-				<div class="boot-glitch g6"></div>
-				<div class="boot-glitch g7"></div>
-				<div class="boot-glitch g8"></div>
-				<div class="boot-glitch g9"></div>
-				<div class="boot-glitch g10"></div>
+			<div class="boot-glitches">
+				<span class="boot-glitch bg1"></span>
+				<span class="boot-glitch bg2"></span>
+				<span class="boot-glitch bg3"></span>
+				<span class="boot-glitch bg4"></span>
+				<span class="boot-glitch bg5"></span>
+				<span class="boot-glitch bg6"></span>
+				<span class="boot-glitch bg7"></span>
+				<span class="boot-glitch bg8"></span>
 			</div>
 
-			<div class="boot-scanlines"></div>
+			<div class="boot-interface">
+				<div class="boot-frame">
+					<div class="boot-corner btl"></div>
+					<div class="boot-corner btr"></div>
+					<div class="boot-corner bbl"></div>
+					<div class="boot-corner bbr"></div>
 
-			<div class="loading-state">
-				<div class="loading-frame">
-					<div class="loading-corner tl"></div>
-					<div class="loading-corner tr"></div>
-					<div class="loading-corner bl"></div>
-					<div class="loading-corner br"></div>
+					<div class="boot-circle boot-circle-large"></div>
+					<div class="boot-circle boot-circle-small"></div>
 
-					<div class="loading-ring large"></div>
-					<div class="loading-ring small"></div>
+					<div class="boot-cross boot-cross-h"></div>
+					<div class="boot-cross boot-cross-v"></div>
 
-					<div class="loading-cross vertical"></div>
-					<div class="loading-cross horizontal"></div>
-
-					<div class="loading-title">
-						LOADING
+					<div class="boot-title">
+						SYSTEM REBOOTING
 					</div>
 
-					<div class="loading-status">
-						<span>SYSTEM LINK</span>
-						<span class="pink">///</span>
-						<span>01</span>
+					<div class="boot-subtitle">
+						HYDRA VER.01 SYS RECOVERY
 					</div>
 
-					<div class="loading-blocks">
+					<div class="boot-progress">
+						<span></span>
+						<span></span>
 						<span></span>
 						<span></span>
 						<span></span>
@@ -485,229 +455,245 @@
 				</div>
 			</div>
 
-			<div class="loading-tears">
-				<div class="loading-tear lt1"></div>
-				<div class="loading-tear lt2"></div>
-				<div class="loading-tear lt3"></div>
-				<div class="loading-tear lt4"></div>
-				<div class="loading-tear lt5"></div>
-			</div>
-
-			<div class="boot-release"></div>
+			<div class="boot-flash"></div>
 		</div>
 	{/if}
 
 	<!-- =================================================
-	     PAGE TRANSITION
+	     ROUTE TRANSITION
 	     ================================================= -->
 
 	{#if transitioning}
 		<div
 			class:transition-leaving={transitionLeaving}
-			class="page-transition"
+			class="route-transition"
 			aria-hidden="true"
 		>
-			<div class="transition-scene"></div>
-			<div class="transition-scene-distortion"></div>
-			<div class="transition-dark"></div>
+			<div class="transition-black"></div>
 
-			<div class="transition-strips">
-				<div class="transition-strip ts1"></div>
-				<div class="transition-strip ts2"></div>
-				<div class="transition-strip ts3"></div>
-				<div class="transition-strip ts4"></div>
-				<div class="transition-strip ts5"></div>
-				<div class="transition-strip ts6"></div>
-				<div class="transition-strip ts7"></div>
-				<div class="transition-strip ts8"></div>
-				<div class="transition-strip ts9"></div>
-				<div class="transition-strip ts10"></div>
-				<div class="transition-strip ts11"></div>
-				<div class="transition-strip ts12"></div>
+			<div class="transition-scanlines"></div>
+
+			<div class="transition-glitches">
+				<span class="transition-strip t1"></span>
+				<span class="transition-strip t2"></span>
+				<span class="transition-strip t3"></span>
+				<span class="transition-strip t4"></span>
+				<span class="transition-strip t5"></span>
+				<span class="transition-strip t6"></span>
+				<span class="transition-strip t7"></span>
+				<span class="transition-strip t8"></span>
+				<span class="transition-strip t9"></span>
+				<span class="transition-strip t10"></span>
+				<span class="transition-strip t11"></span>
+				<span class="transition-strip t12"></span>
 			</div>
 
-			<div class="transition-loading">
-				<div class="transition-frame">
-					<div class="transition-corner tl"></div>
-					<div class="transition-corner tr"></div>
-					<div class="transition-corner bl"></div>
-					<div class="transition-corner br"></div>
+			<div class="transition-interface">
+				<div class="transition-circle outer"></div>
+				<div class="transition-circle inner"></div>
 
-					<div class="transition-circle circle-large"></div>
-					<div class="transition-circle circle-small"></div>
+				<div class="transition-title">
+					SYSTEM RECONFIGURE
+				</div>
 
-					<div class="transition-title">
-						LOADING
-					</div>
+				<div class="transition-code">
+					LINK
+					<span>///</span>
+					01
+				</div>
 
-					<div class="transition-code">
-						SYSTEM RECONFIGURE
-						<span class="pink">///</span>
-					</div>
-
-					<div class="transition-bars">
-						<span></span>
-						<span></span>
-						<span></span>
-						<span></span>
-						<span></span>
-						<span></span>
-						<span></span>
-						<span></span>
-						<span></span>
-					</div>
+				<div class="transition-progress">
+					<span></span>
+					<span></span>
+					<span></span>
+					<span></span>
+					<span></span>
+					<span></span>
+					<span></span>
+					<span></span>
 				</div>
 			</div>
 
-			<div class="release-strips">
-				<div class="release-strip r1"></div>
-				<div class="release-strip r2"></div>
-				<div class="release-strip r3"></div>
-				<div class="release-strip r4"></div>
-				<div class="release-strip r5"></div>
-				<div class="release-strip r6"></div>
-			</div>
-
-			<div class="release-scan"></div>
-			<div class="page-release"></div>
+			<div class="transition-flash"></div>
 		</div>
 	{/if}
 </div>
 
 <style>
 	/* =====================================================
-	   COLORS / RESET
+	   GLOBAL VARIABLES
 	   ===================================================== */
 
 	:global(:root) {
 		--hud-pink: #ff0080;
 		--hud-pink-soft: rgba(255, 0, 128, 0.55);
-		--hud-pink-faint: rgba(255, 0, 128, 0.2);
+		--hud-pink-faint: rgba(255, 0, 128, 0.18);
+
+		/*
+		 * CursorHUD updates these globally.
+		 *
+		 * Individual routes can use these variables
+		 * without creating another mouse listener.
+		 */
+		--cursor-x: 50%;
+		--cursor-y: 50%;
+		--cursor-intensity: 0;
+		--cursor-vx: 0px;
+		--cursor-vy: 0px;
 	}
+
+	/* =====================================================
+	   GLOBAL RESET
+	   ===================================================== */
 
 	:global(html),
 	:global(body) {
 		margin: 0;
 		padding: 0;
+
+		width: 100%;
 		min-width: 100%;
 		min-height: 100%;
+
 		background: #000;
+
 		color: #fff;
+	}
+
+	:global(body) {
+		min-height: 100vh;
 	}
 
 	:global(*) {
 		box-sizing: border-box;
 	}
 
-	.site {
-		position: relative;
-		width: 100%;
-		min-height: 100vh;
-		background: #000;
+	:global(a) {
+		-webkit-tap-highlight-color: transparent;
 	}
 
 	/* =====================================================
-	   HOME BUTTON
+	   SITE
+	   ===================================================== */
+
+	.site {
+		position: relative;
+
+		width: 100%;
+		min-height: 100vh;
+
+		background: #000;
+	}
+
+	.route-content {
+		position: relative;
+
+		z-index: 1;
+
+		width: 100%;
+		min-height: 100vh;
+	}
+
+	/* =====================================================
+	   GLOBAL HOME BUTTON
 	   ===================================================== */
 
 	.home-button {
 		position: fixed;
 
-		left: 4%;
+		left: 4.2%;
 		top: 2.2%;
 
 		z-index: 1000;
 
-		/*
-		 * Explicit dimensions are important.
-		 * The previous version used only absolutely-
-		 * positioned children, causing the anchor to
-		 * collapse to zero height.
-		 */
-		width: 275px;
-		height: 105px;
+		width: 230px;
+		height: 92px;
 
 		display: block;
 
-		cursor: pointer;
 		text-decoration: none;
+
+		cursor: pointer;
 
 		pointer-events: auto;
 
 		transform-origin: left top;
 
 		transition:
-			transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-			filter 180ms ease;
+			transform
+			180ms
+			cubic-bezier(
+				0.22,
+				1,
+				0.36,
+				1
+			),
+			filter
+			180ms
+			ease;
 	}
 
-	.signature-layer {
+	.signature-base,
+	.signature-glitch {
 		position: absolute;
 
-		left: 0;
-		top: 0;
-
-		width: 100%;
-		height: 100%;
+		inset: 0;
 
 		display: block;
 
 		pointer-events: none;
+	}
 
-		overflow: visible;
+	.signature-base {
+		z-index: 1;
+	}
+
+	.signature-glitch {
+		z-index: 2;
 
 		opacity: 0;
 	}
 
-	.signature-layer img {
+	.signature-base img,
+	.signature-glitch img {
 		display: block;
 
 		width: 100%;
 		height: 100%;
 
 		object-fit: contain;
-		object-position: left top;
-	}
 
-	/* Base signature is ALWAYS visible */
-	.signature-base {
-		position: absolute;
-
-		inset: 0;
-
-		opacity: 1;
-
-		z-index: 1;
+		object-position:
+			left center;
 	}
 
 	.signature-base img {
 		filter:
 			drop-shadow(
-				0 0 5px
-				rgba(255, 0, 128, 0.18)
+				0 0 4px
+				rgba(
+					255,
+					0,
+					128,
+					0.2
+				)
 			);
 	}
 
-	.signature-pink {
-		z-index: 2;
-
+	.signature-glitch-a {
 		filter:
 			sepia(1)
 			saturate(100)
 			hue-rotate(285deg)
-			brightness(1.35)
-			contrast(1.2);
+			brightness(1.5);
 
 		mix-blend-mode: screen;
 	}
 
-	.signature-white {
-		z-index: 3;
-
+	.signature-glitch-b {
 		filter:
 			grayscale(1)
-			brightness(2.3)
-			contrast(1.25);
+			brightness(2.4);
 
 		mix-blend-mode: screen;
 	}
@@ -715,210 +701,233 @@
 	.signature-scan {
 		position: absolute;
 
-		left: -5%;
-		right: -5%;
+		z-index: 3;
 
-		top: 45%;
+		left: 0;
+		right: 0;
+
+		top: 50%;
 
 		height: 2px;
 
-		z-index: 4;
+		opacity: 0;
 
 		background:
 			linear-gradient(
 				90deg,
 				transparent,
-				rgba(255, 0, 128, 0.9),
+				var(--hud-pink),
 				transparent
 			);
 
-		opacity: 0;
-
 		pointer-events: none;
 	}
-
-	.signature-noise {
-		position: absolute;
-
-		left: -2%;
-		top: 0;
-
-		width: 104%;
-		height: 100%;
-
-		z-index: 5;
-
-		pointer-events: none;
-
-		opacity: 0;
-
-		background:
-			repeating-linear-gradient(
-				180deg,
-				transparent 0,
-				transparent 4px,
-				rgba(255, 0, 128, 0.16) 5px,
-				transparent 6px
-			);
-
-		mix-blend-mode: screen;
-	}
-
-	/* =====================================================
-	   HOME HOVER
-	   ===================================================== */
 
 	.home-button:hover,
 	.home-button:focus-visible {
 		transform:
 			translateX(3px)
-			scale(1.035);
+			scale(1.045);
 
 		filter:
 			drop-shadow(
-				0 0 6px
-				rgba(255, 0, 128, 0.55)
+				0 0 5px
+				rgba(
+					255,
+					0,
+					128,
+					0.7
+				)
 			)
 			drop-shadow(
 				0 0 18px
-				rgba(255, 0, 128, 0.23)
+				rgba(
+					255,
+					0,
+					128,
+					0.3
+				)
 			);
 
 		outline: none;
 	}
 
-	.home-button:hover .signature-pink,
-	.home-button:focus-visible .signature-pink {
-		opacity: 0.8;
+	.home-button:hover
+		.signature-glitch-a,
+	.home-button:focus-visible
+		.signature-glitch-a {
+		opacity: 0.82;
 
 		animation:
-			signature-glitch-pink
-			480ms
+			signature-glitch-a
+			470ms
 			steps(7, end)
 			infinite;
 	}
 
-	.home-button:hover .signature-white,
-	.home-button:focus-visible .signature-white {
-		opacity: 0.38;
+	.home-button:hover
+		.signature-glitch-b,
+	.home-button:focus-visible
+		.signature-glitch-b {
+		opacity: 0.32;
 
 		animation:
-			signature-glitch-white
-			430ms
+			signature-glitch-b
+			410ms
 			steps(6, end)
 			infinite;
 	}
 
-	.home-button:hover .signature-scan,
-	.home-button:focus-visible .signature-scan {
-		opacity: 1;
-
+	.home-button:hover
+		.signature-scan,
+	.home-button:focus-visible
+		.signature-scan {
 		animation:
 			signature-scan
-			850ms
+			820ms
 			steps(5, end)
 			infinite;
 	}
 
-	.home-button:hover .signature-noise,
-	.home-button:focus-visible .signature-noise {
-		opacity: 0.78;
-
-		animation:
-			signature-noise-glitch
-			300ms
-			steps(4, end)
-			infinite;
-	}
-
 	/* =====================================================
-	   SIGNATURE ANIMATIONS
+	   SIGNATURE GLITCH
 	   ===================================================== */
 
-	@keyframes signature-glitch-pink {
+	@keyframes signature-glitch-a {
 		0%,
 		100% {
-			transform: translate(0, 0);
-			clip-path: inset(0 0 0 0);
+			transform:
+				translate(0, 0);
+
+			clip-path:
+				inset(0 0 0 0);
 		}
 
-		8% {
-			transform: translate(5px, -1px);
-			clip-path: inset(4% 0 82% 0);
+		10% {
+			transform:
+				translate(6px, -1px);
+
+			clip-path:
+				inset(
+					4% 0 80% 0
+				);
 		}
 
-		16% {
-			transform: translate(-7px, 1px);
-			clip-path: inset(28% 0 46% 0);
+		22% {
+			transform:
+				translate(-7px, 1px);
+
+			clip-path:
+				inset(
+					30% 0 48% 0
+				);
 		}
 
-		26% {
-			transform: translate(4px, 0);
-			clip-path: inset(63% 0 25% 0);
+		35% {
+			transform:
+				translate(5px, 0);
+
+			clip-path:
+				inset(
+					62% 0 22% 0
+				);
 		}
 
-		38% {
-			transform: translate(-5px, -1px);
-			clip-path: inset(79% 0 7% 0);
-		}
+		48% {
+			transform:
+				translate(-5px, -1px);
 
-		52% {
-			transform: translate(8px, 1px);
-			clip-path: inset(14% 0 69% 0);
-		}
-
-		66% {
-			transform: translate(-4px, 0);
-			clip-path: inset(42% 0 37% 0);
-		}
-
-		80% {
-			transform: translate(6px, -1px);
-			clip-path: inset(73% 0 12% 0);
-		}
-
-		92% {
-			transform: translate(-3px, 0);
-			clip-path: inset(9% 0 77% 0);
-		}
-	}
-
-	@keyframes signature-glitch-white {
-		0%,
-		100% {
-			transform: translate(0, 0);
-			clip-path: inset(0 0 0 0);
-		}
-
-		12% {
-			transform: translate(-4px, 0);
-			clip-path: inset(17% 0 70% 0);
-		}
-
-		29% {
-			transform: translate(6px, 1px);
-			clip-path: inset(51% 0 27% 0);
-		}
-
-		46% {
-			transform: translate(-6px, -1px);
-			clip-path: inset(76% 0 9% 0);
+			clip-path:
+				inset(
+					78% 0 8% 0
+				);
 		}
 
 		63% {
-			transform: translate(5px, 0);
-			clip-path: inset(34% 0 53% 0);
+			transform:
+				translate(8px, 1px);
+
+			clip-path:
+				inset(
+					15% 0 68% 0
+				);
 		}
 
-		81% {
-			transform: translate(-3px, 1px);
-			clip-path: inset(7% 0 84% 0);
+		78% {
+			transform:
+				translate(-4px, 0);
+
+			clip-path:
+				inset(
+					44% 0 36% 0
+				);
+		}
+
+		91% {
+			transform:
+				translate(4px, -1px);
+
+			clip-path:
+				inset(
+					70% 0 15% 0
+				);
+		}
+	}
+
+	@keyframes signature-glitch-b {
+		0%,
+		100% {
+			transform:
+				translate(0, 0);
+
+			clip-path:
+				inset(0 0 0 0);
+		}
+
+		18% {
+			transform:
+				translate(-4px, 0);
+
+			clip-path:
+				inset(
+					17% 0 70% 0
+				);
+		}
+
+		37% {
+			transform:
+				translate(6px, 1px);
+
+			clip-path:
+				inset(
+					51% 0 27% 0
+				);
+		}
+
+		56% {
+			transform:
+				translate(-6px, -1px);
+
+			clip-path:
+				inset(
+					76% 0 9% 0
+				);
+		}
+
+		75% {
+			transform:
+				translate(5px, 0);
+
+			clip-path:
+				inset(
+					34% 0 53% 0
+				);
 		}
 	}
 
 	@keyframes signature-scan {
 		0% {
-			top: 3%;
+			top: 5%;
 			opacity: 0;
 		}
 
@@ -927,41 +936,18 @@
 		}
 
 		50% {
-			top: 54%;
+			top: 53%;
 			opacity: 1;
 		}
 
 		85% {
 			top: 92%;
-			opacity: 0.55;
+			opacity: 0.5;
 		}
 
 		100% {
 			top: 100%;
 			opacity: 0;
-		}
-	}
-
-	@keyframes signature-noise-glitch {
-		0%,
-		100% {
-			transform: translate(0, 0);
-		}
-
-		20% {
-			transform: translate(2px, -1px);
-		}
-
-		40% {
-			transform: translate(-3px, 1px);
-		}
-
-		60% {
-			transform: translate(1px, 0);
-		}
-
-		80% {
-			transform: translate(-2px, -1px);
 		}
 	}
 
@@ -976,11 +962,12 @@
 
 		z-index: 70;
 
-		pointer-events: none;
-
 		overflow: hidden;
 
-		color: var(--hud-pink);
+		pointer-events: none;
+
+		color:
+			var(--hud-pink);
 	}
 
 	/* =====================================================
@@ -993,118 +980,150 @@
 		background:
 			var(--hud-pink);
 
-		opacity: 0.78;
-
-		height: 1px;
-
-		box-shadow:
-			0 0 3px
-			rgba(255, 0, 128, 0.08);
+		opacity: 0.68;
 
 		animation:
-			border-glitch
-			4.8s
+			hud-glitch
+			5s
 			steps(3, end)
 			infinite;
 	}
 
-	.hud-border.top {
-		left: 6.5%;
+	.hud-top {
+		left: 6%;
 		right: 7%;
-		top: 19px;
+
+		top: 13px;
+
+		height: 1px;
 	}
 
-	.hud-border.right {
-		right: 14px;
-		top: 9%;
+	.hud-bottom {
+		left: 6%;
+		right: 6%;
+
+		bottom: 14px;
+
+		height: 1px;
+	}
+
+	.hud-left {
+		left: 7px;
+
+		top: 8%;
 		bottom: 18%;
+
 		width: 1px;
-		height: auto;
 	}
 
-	.hud-border.bottom {
-		left: 7%;
-		right: 6.5%;
-		bottom: 19px;
-		animation-delay: 0.55s;
-	}
+	.hud-right {
+		right: 7px;
 
-	.hud-border.left {
-		left: 14px;
-		top: 9%;
+		top: 8%;
 		bottom: 18%;
+
 		width: 1px;
-		height: auto;
 	}
 
 	/* =====================================================
-	   TOP SIGNAL
+	   TOP SYSTEM
 	   ===================================================== */
 
-	.top-signal {
+	.top-system {
 		position: absolute;
-		left: 38%;
-		top: 4px;
-		width: 24%;
-		height: 34px;
+
+		left: 37%;
+		top: 0;
+
+		width: 27%;
+		height: 35px;
 	}
 
-	.top-signal-line {
+	.top-line {
 		position: absolute;
-		top: 12px;
+
 		left: 0;
 		right: 0;
+
+		top: 13px;
+
 		height: 1px;
-		background: var(--hud-pink-soft);
+
+		background:
+			var(--hud-pink-soft);
 	}
 
-	.top-signal-node {
+	.top-node {
 		position: absolute;
-		top: 8px;
+
+		top: 9px;
+
 		width: 7px;
 		height: 7px;
-		border: 1px solid var(--hud-pink);
+
+		border:
+			1px solid
+			var(--hud-pink);
+
 		background: #000;
-		transform: rotate(45deg);
+
+		transform:
+			rotate(45deg);
 	}
 
-	.top-signal-node.n1 {
+	.node-a {
 		left: 18%;
 	}
 
-	.top-signal-node.n2 {
+	.node-b {
 		left: 50%;
 	}
 
-	.top-signal-node.n3 {
+	.node-c {
 		right: 12%;
 	}
 
-	.top-signal-bars {
+	.top-bars {
 		position: absolute;
-		top: 23px;
-		left: 35%;
+
+		top: 24px;
+		left: 37%;
+
 		display: flex;
+
 		gap: 3px;
 	}
 
-	.top-signal-bars span {
+	.top-bars span {
 		width: 6px;
 		height: 4px;
-		background: var(--hud-pink-soft);
+
+		background:
+			var(--hud-pink-soft);
+
 		animation:
-			bar-glitch
-			1.65s
+			bar-pulse
+			1.6s
 			steps(4, end)
 			infinite;
 	}
 
 	/* =====================================================
-	   TOP RIGHT SYSTEM
+	   SYSTEM MODULE
 	   ===================================================== */
 
-	.edge-system {
+	.system-module {
 		position: absolute;
+
+		right: 4%;
+		top: 24px;
+
+		width: 120px;
+		height: 32px;
+
+		border:
+			1px solid
+			var(--hud-pink-soft);
 
 		font-family:
 			'Courier New',
@@ -1113,92 +1132,95 @@
 
 		animation:
 			module-glitch
-			4.6s
+			4.7s
 			steps(3, end)
 			infinite;
 	}
 
-	.top-right-system {
-		right: 4%;
-		top: 28px;
-		width: 120px;
-		height: 28px;
-		border: 1px solid var(--hud-pink-soft);
-		padding: 6px;
-	}
-
-	.system-box-title {
+	.system-label {
 		position: absolute;
+
 		left: 6px;
-		top: 7px;
+		top: 6px;
+
 		font-size: 6px;
-		font-weight: 700;
 	}
 
-	.system-box-data {
+	.system-bars {
 		position: absolute;
-		left: 27px;
+
+		left: 28px;
 		top: 7px;
+
 		display: flex;
+
 		gap: 2px;
 	}
 
-	.system-box-data span {
-		width: 5px;
+	.system-bars span {
+		width: 6px;
 		height: 5px;
-		background: var(--hud-pink-soft);
+
+		background:
+			var(--hud-pink-soft);
+
 		animation:
-			bar-glitch
-			1.6s
+			bar-pulse
+			1.5s
 			steps(4, end)
 			infinite;
 	}
 
-	.system-box-status {
+	.system-status {
 		position: absolute;
-		left: 27px;
+
+		left: 28px;
 		bottom: 4px;
+
 		font-size: 4px;
-		color: var(--hud-pink-soft);
+
+		color:
+			var(--hud-pink-soft);
 	}
 
 	/* =====================================================
 	   RADARS
 	   ===================================================== */
 
-	.edge-radar {
+	.radar {
 		position: absolute;
+
+		top: 40%;
 
 		width: 95px;
 		height: 95px;
 
-		opacity: 0.32;
+		opacity: 0.28;
 
 		animation:
-			radar-glitch
-			5.2s
+			module-glitch
+			5.3s
 			steps(3, end)
 			infinite;
 	}
 
-	.left-radar {
-		left: 30px;
-		top: 40%;
+	.radar-left {
+		left: 25px;
 	}
 
-	.right-radar {
-		right: 30px;
-		top: 40%;
+	.radar-right {
+		right: 25px;
 	}
 
-	.radar-circle {
+	.radar-ring {
 		position: absolute;
+
 		left: 50%;
 		top: 50%;
 
 		border:
 			1px solid
-			rgba(255, 0, 128, 0.64);
+			var(--hud-pink-soft);
 
 		border-radius: 50%;
 
@@ -1206,48 +1228,58 @@
 			translate(-50%, -50%);
 	}
 
-	.radar-circle.outer {
+	.radar-ring-a {
 		width: 90px;
 		height: 90px;
 	}
 
-	.radar-circle.middle {
+	.radar-ring-b {
 		width: 58px;
 		height: 58px;
 	}
 
-	.radar-circle.inner {
-		width: 25px;
-		height: 25px;
+	.radar-ring-c {
+		width: 26px;
+		height: 26px;
 	}
 
-	.radar-cross {
+	.radar-horizontal,
+	.radar-vertical {
 		position: absolute;
-		background: var(--hud-pink-soft);
+
+		background:
+			var(--hud-pink-soft);
 	}
 
-	.radar-cross.horizontal {
+	.radar-horizontal {
 		left: 0;
 		right: 0;
+
 		top: 50%;
+
 		height: 1px;
 	}
 
-	.radar-cross.vertical {
+	.radar-vertical {
 		top: 0;
 		bottom: 0;
+
 		left: 50%;
+
 		width: 1px;
 	}
 
 	.radar-sweep {
 		position: absolute;
+
 		left: 50%;
 		top: 50%;
-		width: 39px;
+
+		width: 40px;
 		height: 1px;
 
-		transform-origin: left center;
+		transform-origin:
+			left center;
 
 		background:
 			linear-gradient(
@@ -1257,20 +1289,25 @@
 			);
 
 		animation:
-			radar-sweep
+			radar-spin
 			3.4s
 			linear
 			infinite;
 	}
 
-	.radar-point {
+	.radar-dot {
 		position: absolute;
-		left: 67%;
-		top: 30%;
+
+		left: 69%;
+		top: 29%;
+
 		width: 4px;
 		height: 4px;
-		background: var(--hud-pink);
+
 		border-radius: 50%;
+
+		background:
+			var(--hud-pink);
 	}
 
 	/* =====================================================
@@ -1280,73 +1317,83 @@
 	.data-rail {
 		position: absolute;
 
-		top: 27%;
-		width: 30px;
+		top: 26%;
+
+		width: 25px;
 
 		font-family:
 			'Courier New',
 			Courier,
 			monospace;
 
-		opacity: 0.4;
+		opacity: 0.38;
 
 		animation:
-			rail-glitch
-			5.4s
+			module-glitch
+			5.6s
 			steps(3, end)
 			infinite;
 	}
 
-	.left-rail {
-		left: 8px;
+	.data-left {
+		left: 2px;
 	}
 
-	.right-rail {
-		right: 8px;
+	.data-right {
+		right: 2px;
 	}
 
 	.rail-number {
-		font-size: 6px;
+		font-size: 5px;
+
 		margin-bottom: 8px;
 	}
 
-	.rail-track {
+	.rail-line {
 		width: 1px;
-		height: 210px;
+		height: 195px;
+
 		margin-left: 5px;
-		background: rgba(255, 0, 128, 0.35);
+
+		background:
+			var(--hud-pink-soft);
 	}
 
-	.rail-point {
-		position: relative;
+	.rail-dot {
+		display: block;
 
 		width: 6px;
 		height: 6px;
 
 		margin:
-			12px 0 0 2px;
+			12px 0
+			0 2px;
 
 		border:
 			1px solid
 			var(--hud-pink);
 
 		border-radius: 50%;
+
 		background: #000;
 
 		animation:
 			node-pulse
-			2.6s
+			2.5s
 			ease-in-out
 			infinite;
 	}
 
-	.rail-data {
+	.rail-code {
 		display: flex;
+
 		flex-direction: column;
-		gap: 3px;
-		margin-top: 10px;
-		font-size: 5px;
-		color: var(--hud-pink-soft);
+
+		gap: 2px;
+
+		margin-top: 9px;
+
+		font-size: 4px;
 	}
 
 	/* =====================================================
@@ -1355,7 +1402,9 @@
 
 	.bottom-module {
 		position: absolute;
-		bottom: 42px;
+
+		bottom: 36px;
+
 		width: 180px;
 
 		font-family:
@@ -1364,60 +1413,72 @@
 			monospace;
 
 		font-size: 6px;
+
 		opacity: 0.5;
 
 		animation:
 			module-glitch
-			5s
+			5.1s
 			steps(3, end)
 			infinite;
 	}
 
 	.bottom-left-module {
-		left: 4%;
+		left: 3.5%;
 	}
 
 	.bottom-right-module {
-		right: 4%;
+		right: 3.5%;
 	}
 
-	.module-heading {
-		letter-spacing: 0.14em;
+	.bottom-title {
+		letter-spacing:
+			0.14em;
 	}
 
-	.module-bar-grid {
+	.bottom-bars {
 		display: flex;
+
 		gap: 4px;
+
 		margin-top: 7px;
 	}
 
-	.module-bar-grid span {
-		width: 16px;
+	.bottom-bars span {
+		width: 17px;
 		height: 4px;
-		background: var(--hud-pink-soft);
+
+		background:
+			var(--hud-pink-soft);
 
 		animation:
-			bar-glitch
-			1.8s
+			bar-pulse
+			1.7s
 			steps(4, end)
 			infinite;
 	}
 
-	.module-bar-grid.compact span {
-		width: 13px;
+	.bottom-bars.compact span {
+		width: 14px;
 	}
 
-	.module-rule {
+	.bottom-rule {
 		width: 100%;
 		height: 1px;
+
 		margin-top: 7px;
-		background: var(--hud-pink-soft);
+
+		background:
+			var(--hud-pink-soft);
 	}
 
-	.module-small-text,
-	.module-status-code {
+	.bottom-small {
 		margin-top: 5px;
-		color: var(--hud-pink-soft);
+
+		color:
+			var(--hud-pink-soft);
+
+		font-size: 5px;
 	}
 
 	/* =====================================================
@@ -1428,35 +1489,40 @@
 		position: absolute;
 
 		left: 50%;
-		bottom: 26px;
+		bottom: 20px;
 
-		width: 380px;
-		height: 29px;
+		width: 390px;
+		height: 31px;
 
 		transform:
 			translateX(-50%);
+
+		opacity: 0.45;
 
 		font-family:
 			'Courier New',
 			Courier,
 			monospace;
 
-		opacity: 0.48;
-
 		animation:
 			stream-glitch
-			4.8s
+			5s
 			steps(3, end)
 			infinite;
 	}
 
-	.stream-rule {
+	.stream-line {
 		position: absolute;
-		top: 4px;
+
 		left: 0;
 		right: 0;
+
+		top: 4px;
+
 		height: 1px;
-		background: var(--hud-pink-soft);
+
+		background:
+			var(--hud-pink-soft);
 	}
 
 	.stream-node {
@@ -1472,31 +1538,35 @@
 			var(--hud-pink);
 
 		border-radius: 50%;
+
 		background: #000;
 	}
 
-	.stream-node.start {
+	.stream-start {
 		left: 0;
 	}
 
-	.stream-node.middle {
+	.stream-middle {
 		left: 50%;
 
 		transform:
 			translateX(-50%);
 	}
 
-	.stream-node.end {
+	.stream-end {
 		right: 0;
 	}
 
 	.stream-bars {
 		position: absolute;
-		left: 45px;
-		right: 45px;
-		top: 12px;
+
+		left: 55px;
+		right: 55px;
+
+		top: 13px;
 
 		display: flex;
+
 		gap: 4px;
 	}
 
@@ -1509,13 +1579,13 @@
 			var(--hud-pink-soft);
 
 		animation:
-			bar-glitch
-			1.8s
+			bar-pulse
+			1.7s
 			steps(4, end)
 			infinite;
 	}
 
-	.stream-label {
+	.stream-text {
 		position: absolute;
 
 		left: 50%;
@@ -1524,183 +1594,77 @@
 		transform:
 			translateX(-50%);
 
-		font-size: 5px;
-		letter-spacing: 0.15em;
+		font-size: 4px;
+
+		letter-spacing:
+			0.15em;
 	}
 
 	/* =====================================================
-	   BOTTOM CIRCUIT
+	   CORNERS
 	   ===================================================== */
 
-	.bottom-circuit {
+	.corner {
 		position: absolute;
 
-		left: 18%;
-		right: 18%;
-		bottom: 8px;
-
-		height: 24px;
-
-		opacity: 0.46;
-	}
-
-	.bottom-circuit-main {
-		position: absolute;
-
-		left: 0;
-		right: 0;
-		top: 10px;
-
-		height: 1px;
-		background: var(--hud-pink-soft);
-	}
-
-	.bottom-circuit-branch {
-		position: absolute;
-
-		top: 5px;
-		height: 11px;
-
-		border-left:
-			1px solid
-			var(--hud-pink-soft);
-	}
-
-	.branch-a {
-		left: 18%;
-	}
-
-	.branch-b {
-		left: 52%;
-	}
-
-	.branch-c {
-		right: 15%;
-	}
-
-	.bottom-circuit-point {
-		position: absolute;
-
-		top: 6px;
-
-		width: 8px;
-		height: 8px;
-
-		border:
-			1px solid
-			var(--hud-pink);
-
-		border-radius: 50%;
-		background: #000;
-	}
-
-	.point-a {
-		left: 18%;
-	}
-
-	.point-b {
-		left: 52%;
-	}
-
-	.point-c {
-		right: 15%;
-	}
-
-	/* =====================================================
-	   CORNER DATA
-	   ===================================================== */
-
-	.corner-cluster {
-		position: absolute;
-		display: flex;
-		gap: 4px;
-	}
-
-	.corner-cluster span {
-		width: 4px;
-		height: 4px;
-		background: var(--hud-pink-soft);
-
-		animation:
-			bar-glitch
-			1.65s
-			steps(4, end)
-			infinite;
-	}
-
-	.corner-cluster-tl {
-		left: 54px;
-		top: 24px;
-	}
-
-	.corner-cluster-tr {
-		right: 62px;
-		top: 58px;
-	}
-
-	.corner-cluster-bl {
-		left: 62px;
-		bottom: 36px;
-	}
-
-	.corner-cluster-br {
-		right: 60px;
-		bottom: 40px;
-	}
-
-	/* =====================================================
-	   CORNER BRACKETS
-	   ===================================================== */
-
-	.corner-bracket {
-		position: absolute;
-
-		width: 76px;
-		height: 55px;
+		width: 80px;
+		height: 52px;
 
 		animation:
 			module-glitch
-			5.2s
+			5.4s
 			steps(3, end)
 			infinite;
 	}
 
-	.bracket-tl {
-		left: 13px;
-		top: 17px;
+	.corner-tl {
+		left: 10px;
+		top: 16px;
 	}
 
-	.bracket-tr {
-		right: 13px;
-		top: 17px;
-		transform: scaleX(-1);
+	.corner-tr {
+		right: 10px;
+		top: 16px;
+
+		transform:
+			scaleX(-1);
 	}
 
-	.bracket-bl {
-		left: 13px;
-		bottom: 17px;
-		transform: scaleY(-1);
+	.corner-bl {
+		left: 10px;
+		bottom: 16px;
+
+		transform:
+			scaleY(-1);
 	}
 
-	.bracket-br {
-		right: 13px;
-		bottom: 17px;
-		transform: scale(-1);
+	.corner-br {
+		right: 10px;
+		bottom: 16px;
+
+		transform:
+			scale(-1);
 	}
 
-	.bracket-line {
+	.corner-long,
+	.corner-short {
 		position: absolute;
+
 		left: 0;
+
 		height: 1px;
-		background: var(--hud-pink);
+
+		background:
+			var(--hud-pink);
 	}
 
-	.bracket-line.main {
-		top: 14px;
-		width: 58px;
+	.corner-long {
+		top: 13px;
+
+		width: 60px;
 	}
 
-	.bracket-line.main::after {
+	.corner-long::after {
 		content: '';
 
 		position: absolute;
@@ -1709,71 +1673,78 @@
 		top: 0;
 
 		width: 1px;
-		height: 17px;
+		height: 18px;
 
 		background:
 			var(--hud-pink);
 	}
 
-	.bracket-line.short {
+	.corner-short {
 		top: 29px;
+
 		width: 38px;
-		opacity: 0.62;
+
+		opacity: 0.55;
 	}
 
-	.bracket-node {
+	.corner-dot {
 		position: absolute;
 
-		left: 56px;
-		top: 12px;
+		left: 57px;
+		top: 10px;
 
-		width: 6px;
-		height: 6px;
+		width: 7px;
+		height: 7px;
 
 		border:
 			1px solid
 			var(--hud-pink);
 
 		border-radius: 50%;
-		background: #000;
 
-		animation:
-			node-pulse
-			2.4s
-			ease-in-out
-			infinite;
+		background: #000;
 	}
 
 	/* =====================================================
-	   HUD ANIMATIONS
+	   GLOBAL HUD ANIMATIONS
 	   ===================================================== */
 
-	@keyframes border-glitch {
+	@keyframes hud-glitch {
 		0%,
 		86%,
 		100% {
-			opacity: 0.78;
-			transform: translate(0, 0);
+			opacity: 0.68;
+
+			transform:
+				translate(0, 0);
 		}
 
 		88% {
-			opacity: 0.48;
-			transform: translate(-1px, 0);
+			opacity: 0.35;
+
+			transform:
+				translate(-1px, 0);
 		}
 
 		90% {
-			opacity: 0.96;
-			transform: translate(2px, 0);
+			opacity: 0.95;
+
+			transform:
+				translate(2px, 0);
 		}
 
 		92% {
-			opacity: 0.55;
-			transform: translate(-1px, 1px);
+			opacity: 0.45;
+
+			transform:
+				translate(-1px, 1px);
 		}
 
 		94% {
-			opacity: 0.82;
-			transform: translate(0, 0);
+			opacity: 0.68;
+
+			transform:
+				translate(0, 0);
 		}
 	}
 
@@ -1781,57 +1752,117 @@
 		0%,
 		84%,
 		100% {
-			opacity: 0.78;
-			transform: translate(0, 0);
+			opacity: 0.5;
+
+			filter: none;
 		}
 
 		86% {
-			opacity: 0.44;
-			transform: translate(-2px, 0);
+			opacity: 0.25;
+
+			filter:
+				drop-shadow(
+					-2px 0
+					rgba(
+						255,
+						0,
+						128,
+						0.4
+					)
+				);
 		}
 
 		88% {
-			opacity: 0.94;
-			transform: translate(3px, -1px);
-		}
-
-		90% {
-			opacity: 0.4;
-			transform: translate(-1px, 1px);
-		}
-
-		92% {
 			opacity: 0.78;
-			transform: translate(1px, 0);
-		}
 
-		94% {
-			opacity: 0.82;
-			transform: translate(0, 0);
-		}
-	}
-
-	@keyframes rail-glitch {
-		0%,
-		87%,
-		100% {
-			opacity: 0.4;
-			transform: translateX(0);
-		}
-
-		89% {
-			opacity: 0.24;
-			transform: translateX(-1px);
+			filter:
+				drop-shadow(
+					2px 0
+					rgba(
+						255,
+						255,
+						255,
+						0.18
+					)
+				);
 		}
 
 		91% {
-			opacity: 0.64;
-			transform: translateX(2px);
+			opacity: 0.35;
 		}
 
-		93% {
-			opacity: 0.34;
-			transform: translateX(-1px);
+		94% {
+			opacity: 0.5;
+
+			filter: none;
+		}
+	}
+
+	@keyframes bar-pulse {
+		0%,
+		68%,
+		100% {
+			opacity: 0.5;
+
+			transform:
+				scaleX(1);
+		}
+
+		72% {
+			opacity: 0.16;
+
+			transform:
+				scaleX(0.6);
+		}
+
+		77% {
+			opacity: 0.9;
+
+			transform:
+				scaleX(1.15);
+		}
+
+		82% {
+			opacity: 0.3;
+
+			transform:
+				scaleX(0.82);
+		}
+
+		87% {
+			opacity: 0.6;
+
+			transform:
+				scaleX(1);
+		}
+	}
+
+	@keyframes node-pulse {
+		0%,
+		100% {
+			opacity: 0.35;
+
+			transform:
+				scale(0.9);
+		}
+
+		50% {
+			opacity: 0.95;
+
+			transform:
+				scale(1.15);
+		}
+	}
+
+	@keyframes radar-spin {
+		from {
+			transform:
+				rotate(0deg);
+		}
+
+		to {
+			transform:
+				rotate(360deg);
 		}
 	}
 
@@ -1839,114 +1870,49 @@
 		0%,
 		87%,
 		100% {
-			opacity: 0.48;
-			transform: translateX(-50%);
+			opacity: 0.45;
+
+			transform:
+				translateX(-50%);
 		}
 
 		89% {
-			opacity: 0.25;
+			opacity: 0.22;
+
 			transform:
 				translateX(
-					calc(-50% - 2px)
+					calc(
+						-50% - 2px
+					)
 				);
 		}
 
 		91% {
-			opacity: 0.72;
+			opacity: 0.7;
+
 			transform:
 				translateX(
-					calc(-50% + 2px)
+					calc(
+						-50% + 2px
+					)
 				);
 		}
 
-		93% {
-			opacity: 0.4;
-			transform: translateX(-50%);
-		}
-	}
-
-	@keyframes bar-glitch {
-		0%,
-		70%,
-		100% {
-			opacity: 0.52;
-			transform: scaleX(1);
-		}
-
-		74% {
-			opacity: 0.18;
-			transform: scaleX(0.62);
-		}
-
-		78% {
-			opacity: 0.84;
-			transform: scaleX(1.12);
-		}
-
-		82% {
-			opacity: 0.34;
-			transform: scaleX(0.82);
-		}
-
-		86% {
-			opacity: 0.66;
-			transform: scaleX(1);
-		}
-	}
-
-	@keyframes node-pulse {
-		0%,
-		100% {
-			opacity: 0.42;
-			transform: scale(0.9);
-		}
-
-		50% {
-			opacity: 0.95;
-			transform: scale(1.14);
-		}
-	}
-
-	@keyframes radar-sweep {
-		from {
-			transform: rotate(0deg);
-		}
-
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	@keyframes radar-glitch {
-		0%,
-		88%,
-		100% {
-			opacity: 0.32;
-			transform: translate(0, 0);
-		}
-
-		90% {
-			opacity: 0.18;
-			transform: translate(-1px, 0);
-		}
-
-		92% {
-			opacity: 0.56;
-			transform: translate(2px, -1px);
-		}
-
 		94% {
-			opacity: 0.3;
-			transform: translate(-1px, 1px);
+			opacity: 0.45;
+
+			transform:
+				translateX(-50%);
 		}
 	}
 
 	/* =====================================================
-	   BOOT
+	   BOOT SCREEN
 	   ===================================================== */
 
-	.boot-transition {
+	.boot-screen {
 		position: fixed;
+
 		inset: 0;
 
 		z-index: 10000;
@@ -1954,63 +1920,66 @@
 		overflow: hidden;
 
 		background: #000;
+
 		pointer-events: none;
-
-		animation:
-			boot-in
-			0.5s
-			ease-out
-			forwards;
 	}
 
-	.boot-transition.boot-exiting {
-		animation:
-			boot-out
-			1.05s
-			cubic-bezier(0.76, 0, 0.24, 1)
-			forwards;
-	}
-
-	.boot-scene {
+	.boot-grid {
 		position: absolute;
-		inset: -5%;
+
+		inset: 0;
 
 		background:
-			url('/home-background.png')
-			center center / cover no-repeat;
+			linear-gradient(
+				rgba(
+					255,
+					0,
+					128,
+					0.025
+				)
+				1px,
+				transparent 1px
+			),
+			linear-gradient(
+				90deg,
+				rgba(
+					255,
+					0,
+					128,
+					0.025
+				)
+				1px,
+				transparent 1px
+			);
 
-		filter:
-			blur(15px)
-			brightness(0.37)
-			saturate(0.72);
+		background-size:
+			34px 34px;
 
-		transform: scale(1.08);
+		opacity: 0.35;
 	}
 
-	.boot-scene-blur {
+	.boot-vignette {
 		position: absolute;
+
 		inset: 0;
 
 		background:
 			radial-gradient(
 				ellipse at center,
-				rgba(255, 0, 128, 0.075),
-				rgba(0, 0, 0, 0.85) 100%
+				rgba(
+					255,
+					0,
+					128,
+					0.035
+				),
+				#000 78%
 			);
-
-		backdrop-filter: blur(3px);
 	}
 
-	.boot-dark {
+	.boot-glitches {
 		position: absolute;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.48);
-	}
 
-	.boot-glitch-field {
-		position: absolute;
 		inset: 0;
-		z-index: 4;
 	}
 
 	.boot-glitch {
@@ -2018,135 +1987,188 @@
 
 		height: 2px;
 
+		opacity: 0;
+
 		background:
 			linear-gradient(
 				90deg,
 				transparent,
-				rgba(255, 0, 128, 0.35),
 				var(--hud-pink),
 				transparent
 			);
 
-		opacity: 0;
-	}
-
-	.g1 { top: 19%; left: 0; width: 47%; }
-	.g2 { top: 27%; right: 4%; width: 40%; }
-	.g3 { top: 35%; left: 17%; width: 62%; }
-	.g4 { top: 43%; left: 3%; width: 50%; }
-	.g5 { top: 51%; right: 9%; width: 61%; }
-	.g6 { top: 60%; left: 25%; width: 66%; }
-	.g7 { top: 69%; right: 0; width: 45%; }
-	.g8 { top: 77%; left: 8%; width: 49%; }
-	.g9 { top: 85%; right: 14%; width: 57%; }
-	.g10 { top: 91%; left: 21%; width: 53%; }
-
-	.boot-transition:not(.boot-exiting) .boot-glitch {
 		animation:
 			boot-glitch
-			1.5s
+			1.25s
 			steps(7, end)
 			infinite;
 	}
 
-	.boot-scanlines {
-		position: absolute;
-		inset: 0;
-
-		background:
-			repeating-linear-gradient(
-				180deg,
-				transparent 0,
-				transparent 4px,
-				rgba(255, 0, 128, 0.04) 5px
-			);
+	.bg1 {
+		top: 17%;
+		left: 0;
+		width: 52%;
 	}
 
-	.loading-state {
-		position: absolute;
-		inset: 0;
+	.bg2 {
+		top: 27%;
+		right: 4%;
+		width: 42%;
 
-		z-index: 20;
+		animation-delay:
+			0.07s;
+	}
+
+	.bg3 {
+		top: 38%;
+		left: 12%;
+		width: 69%;
+
+		animation-delay:
+			0.14s;
+	}
+
+	.bg4 {
+		top: 48%;
+		right: 0;
+		width: 55%;
+
+		animation-delay:
+			0.21s;
+	}
+
+	.bg5 {
+		top: 58%;
+		left: 3%;
+		width: 63%;
+
+		animation-delay:
+			0.28s;
+	}
+
+	.bg6 {
+		top: 68%;
+		right: 9%;
+		width: 62%;
+
+		animation-delay:
+			0.35s;
+	}
+
+	.bg7 {
+		top: 79%;
+		left: 16%;
+		width: 53%;
+
+		animation-delay:
+			0.42s;
+	}
+
+	.bg8 {
+		top: 88%;
+		right: 2%;
+		width: 47%;
+
+		animation-delay:
+			0.49s;
+	}
+
+	.boot-interface {
+		position: absolute;
+
+		inset: 0;
 
 		display: grid;
+
 		place-items: center;
-
-		animation:
-			loading-state-in
-			1s
-			cubic-bezier(0.22, 1, 0.36, 1)
-			forwards;
 	}
 
-	.boot-exiting .loading-state {
-		animation:
-			loading-state-out
-			1.05s
-			cubic-bezier(0.65, 0, 0.35, 1)
-			forwards;
-	}
-
-	.loading-frame {
+	.boot-frame {
 		position: relative;
 
-		width: min(620px, 55vw);
-		height: min(345px, 42vh);
+		width:
+			min(
+				480px,
+				62vw
+			);
+
+		height:
+			min(
+				240px,
+				35vh
+			);
 
 		border:
 			1px solid
 			var(--hud-pink-soft);
 
 		background:
-			linear-gradient(
-				180deg,
-				rgba(255, 0, 128, 0.02),
-				rgba(0, 0, 0, 0.52)
+			rgba(
+				0,
+				0,
+				0,
+				0.72
 			);
+
+		animation:
+			boot-frame-in
+			700ms
+			cubic-bezier(
+				0.22,
+				1,
+				0.36,
+				1
+			)
+			forwards;
 	}
 
-	.loading-corner {
+	.boot-corner {
 		position: absolute;
 
-		width: 28px;
-		height: 28px;
+		width: 24px;
+		height: 24px;
 
 		border-color:
 			var(--hud-pink);
 	}
 
-	.loading-corner.tl {
+	.btl {
 		left: -1px;
 		top: -1px;
+
 		border-left: 1px solid;
 		border-top: 1px solid;
 	}
 
-	.loading-corner.tr {
+	.btr {
 		right: -1px;
 		top: -1px;
+
 		border-right: 1px solid;
 		border-top: 1px solid;
 	}
 
-	.loading-corner.bl {
+	.bbl {
 		left: -1px;
 		bottom: -1px;
+
 		border-left: 1px solid;
 		border-bottom: 1px solid;
 	}
 
-	.loading-corner.br {
+	.bbr {
 		right: -1px;
 		bottom: -1px;
+
 		border-right: 1px solid;
 		border-bottom: 1px solid;
 	}
 
-	.loading-ring {
+	.boot-circle {
 		position: absolute;
 
 		left: 50%;
-		top: 50%;
+		top: 48%;
 
 		border:
 			1px solid
@@ -2158,28 +2180,30 @@
 			translate(-50%, -50%);
 
 		animation:
-			loading-ring
-			2.3s
+			boot-ring
+			2s
 			ease-out
 			infinite;
 	}
 
-	.loading-ring.large {
+	.boot-circle-large {
 		width: 110px;
 		height: 110px;
 	}
 
-	.loading-ring.small {
-		width: 58px;
-		height: 58px;
-		animation-delay: 0.25s;
+	.boot-circle-small {
+		width: 50px;
+		height: 50px;
+
+		animation-delay:
+			0.22s;
 	}
 
-	.loading-cross {
+	.boot-cross {
 		position: absolute;
 
 		left: 50%;
-		top: 50%;
+		top: 48%;
 
 		background:
 			var(--hud-pink-soft);
@@ -2188,24 +2212,27 @@
 			translate(-50%, -50%);
 	}
 
-	.loading-cross.vertical {
-		width: 1px;
-		height: 150px;
-	}
-
-	.loading-cross.horizontal {
-		width: 150px;
+	.boot-cross-h {
+		width: 145px;
 		height: 1px;
 	}
 
-	.loading-title {
+	.boot-cross-v {
+		width: 1px;
+		height: 145px;
+	}
+
+	.boot-title {
 		position: absolute;
 
 		left: 50%;
-		top: 48%;
+		top: 39%;
 
 		transform:
 			translateX(-50%);
+
+		color:
+			var(--hud-pink);
 
 		font-family:
 			'Courier New',
@@ -2213,110 +2240,80 @@
 			monospace;
 
 		font-size:
-			clamp(0.7rem, 1vw, 0.92rem);
+			clamp(
+				0.72rem,
+				1.1vw,
+				1rem
+			);
 
-		letter-spacing: 0.18em;
+		letter-spacing:
+			0.13em;
 
-		color:
-			rgba(255, 255, 255, 0.74);
+		white-space: nowrap;
 	}
 
-	.loading-status {
+	.boot-subtitle {
 		position: absolute;
 
 		left: 50%;
-		top: 58%;
+		top: 55%;
 
 		transform:
 			translateX(-50%);
 
-		display: flex;
-		gap: 10px;
+		color:
+			rgba(
+				255,
+				0,
+				128,
+				0.65
+			);
 
 		font-family:
 			'Courier New',
 			Courier,
 			monospace;
 
-		font-size: 0.5rem;
+		font-size: 5px;
 
-		letter-spacing: 0.13em;
+		letter-spacing:
+			0.15em;
 
-		color:
-			rgba(255, 255, 255, 0.36);
+		white-space: nowrap;
 	}
 
-	.pink {
-		color: var(--hud-pink);
-	}
-
-	.loading-blocks {
+	.boot-progress {
 		position: absolute;
 
 		left: 50%;
-		bottom: 22px;
+		bottom: 18px;
 
 		transform:
 			translateX(-50%);
 
 		display: flex;
+
 		gap: 4px;
 	}
 
-	.loading-blocks span {
-		width: 7px;
+	.boot-progress span {
+		width: 8px;
 		height: 3px;
 
 		background:
 			var(--hud-pink-soft);
 
 		animation:
-			bar-glitch
-			1.8s
+			bar-pulse
+			1.3s
 			steps(4, end)
 			infinite;
 	}
 
-	.loading-tears {
+	.boot-flash {
 		position: absolute;
+
 		inset: 0;
-
-		z-index: 25;
-	}
-
-	.loading-tear {
-		position: absolute;
-
-		height: 2px;
-
-		background:
-			linear-gradient(
-				90deg,
-				transparent,
-				var(--hud-pink),
-				transparent
-			);
-
-		opacity: 0;
-
-		animation:
-			loading-tear
-			1.8s
-			steps(7, end)
-			infinite;
-	}
-
-	.lt1 { top: 28%; left: 5%; width: 40%; }
-	.lt2 { top: 40%; right: 5%; width: 32%; animation-delay: 0.1s; }
-	.lt3 { top: 52%; left: 12%; width: 64%; animation-delay: 0.2s; }
-	.lt4 { top: 66%; right: 11%; width: 44%; animation-delay: 0.3s; }
-	.lt5 { top: 78%; left: 20%; width: 52%; animation-delay: 0.4s; }
-
-	.boot-release {
-		position: absolute;
-		inset: 0;
-
-		z-index: 40;
 
 		background:
 			var(--hud-pink);
@@ -2324,53 +2321,67 @@
 		opacity: 0;
 	}
 
-	.boot-exiting .boot-release {
+	.boot-exiting {
 		animation:
-			boot-release
-			1.05s
+			boot-exit
+			1s
+			cubic-bezier(
+				0.65,
+				0,
+				0.35,
+				1
+			)
+			forwards;
+	}
+
+	.boot-exiting
+		.boot-flash {
+		animation:
+			boot-flash
+			1s
 			ease
 			forwards;
 	}
 
 	/* =====================================================
-	   PAGE TRANSITION
+	   ROUTE TRANSITION
 	   ===================================================== */
 
-	.page-transition {
+	.route-transition {
 		position: fixed;
+
 		inset: 0;
 
 		z-index: 9999;
 
 		overflow: hidden;
 
-		background: #000;
-
 		pointer-events: none;
+	}
+
+	.transition-black {
+		position: absolute;
+
+		inset: 0;
+
+		background:
+			rgba(
+				0,
+				0,
+				0,
+				0.96
+			);
 
 		animation:
-			transition-in
-			0.42s
+			transition-black-in
+			430ms
 			ease-out
 			forwards;
 	}
 
-	.transition-scene {
+	.transition-scanlines {
 		position: absolute;
-		inset: -6%;
 
-		background:
-			rgba(0, 0, 0, 0.2);
-
-		animation:
-			transition-blur
-			1.8s
-			cubic-bezier(0.65, 0, 0.35, 1)
-			forwards;
-	}
-
-	.transition-scene-distortion {
-		position: absolute;
 		inset: 0;
 
 		background:
@@ -2378,42 +2389,22 @@
 				180deg,
 				transparent 0,
 				transparent 5px,
-				rgba(255, 0, 128, 0.025) 6px
+				rgba(
+					255,
+					0,
+					128,
+					0.045
+				)
+				6px
 			);
 
-		opacity: 0;
-
-		animation:
-			scene-distortion
-			1.72s
-			ease
-			forwards;
+		opacity: 0.55;
 	}
 
-	.transition-dark {
+	.transition-glitches {
 		position: absolute;
+
 		inset: 0;
-
-		background:
-			radial-gradient(
-				ellipse at center,
-				rgba(255, 0, 128, 0.025),
-				rgba(0, 0, 0, 0.86) 92%
-			);
-
-		opacity: 0;
-
-		animation:
-			transition-dark
-			1.74s
-			ease
-			forwards;
-	}
-
-	.transition-strips {
-		position: absolute;
-		inset: 0;
-		z-index: 8;
 	}
 
 	.transition-strip {
@@ -2421,133 +2412,168 @@
 
 		height: 3px;
 
+		opacity: 0;
+
 		background:
 			linear-gradient(
 				90deg,
 				transparent,
-				var(--hud-pink-soft) 20%,
-				var(--hud-pink) 50%,
-				var(--hud-pink-soft) 80%,
+				var(--hud-pink-soft),
+				var(--hud-pink),
+				var(--hud-pink-soft),
 				transparent
 			);
 
 		box-shadow:
-			0 0 13px
-			rgba(255, 0, 128, 0.3);
-
-		opacity: 0;
-
-		transform:
-			translateX(-10%)
-			scaleX(0.7);
+			0 0 14px
+			rgba(
+				255,
+				0,
+				128,
+				0.3
+			);
 
 		animation:
-			transition-strip
-			1.08s
-			cubic-bezier(0.65, 0, 0.35, 1)
+			route-glitch
+			900ms
+			cubic-bezier(
+				0.65,
+				0,
+				0.35,
+				1
+			)
 			forwards;
 	}
 
-	.ts1 { top: 14%; left: 0; width: 55%; }
-	.ts2 { top: 21%; left: 32%; width: 63%; animation-delay: 0.03s; }
-	.ts3 { top: 28%; left: -4%; width: 46%; animation-delay: 0.06s; }
-	.ts4 { top: 35%; left: 15%; width: 72%; animation-delay: 0.09s; }
-	.ts5 { top: 42%; left: 40%; width: 57%; animation-delay: 0.12s; }
-	.ts6 { top: 50%; left: -4%; width: 54%; animation-delay: 0.15s; }
-	.ts7 { top: 57%; left: 17%; width: 68%; animation-delay: 0.18s; }
-	.ts8 { top: 64%; left: 44%; width: 59%; animation-delay: 0.21s; }
-	.ts9 { top: 71%; left: 3%; width: 56%; animation-delay: 0.24s; }
-	.ts10 { top: 78%; left: 28%; width: 68%; animation-delay: 0.27s; }
-	.ts11 { top: 85%; left: 8%; width: 42%; animation-delay: 0.3s; }
-	.ts12 { top: 91%; left: 51%; width: 45%; animation-delay: 0.33s; }
+	.t1 {
+		top: 12%;
+		left: 0;
+		width: 55%;
+	}
 
-	.transition-loading {
+	.t2 {
+		top: 20%;
+		left: 34%;
+		width: 64%;
+
+		animation-delay:
+			0.03s;
+	}
+
+	.t3 {
+		top: 28%;
+		left: -5%;
+		width: 48%;
+
+		animation-delay:
+			0.06s;
+	}
+
+	.t4 {
+		top: 36%;
+		left: 13%;
+		width: 73%;
+
+		animation-delay:
+			0.09s;
+	}
+
+	.t5 {
+		top: 44%;
+		left: 43%;
+		width: 57%;
+
+		animation-delay:
+			0.12s;
+	}
+
+	.t6 {
+		top: 52%;
+		left: -2%;
+		width: 57%;
+
+		animation-delay:
+			0.15s;
+	}
+
+	.t7 {
+		top: 60%;
+		left: 18%;
+		width: 69%;
+
+		animation-delay:
+			0.18s;
+	}
+
+	.t8 {
+		top: 68%;
+		left: 45%;
+		width: 58%;
+
+		animation-delay:
+			0.21s;
+	}
+
+	.t9 {
+		top: 75%;
+		left: 3%;
+		width: 55%;
+
+		animation-delay:
+			0.24s;
+	}
+
+	.t10 {
+		top: 82%;
+		left: 27%;
+		width: 69%;
+
+		animation-delay:
+			0.27s;
+	}
+
+	.t11 {
+		top: 88%;
+		left: 8%;
+		width: 43%;
+
+		animation-delay:
+			0.3s;
+	}
+
+	.t12 {
+		top: 93%;
+		left: 51%;
+		width: 45%;
+
+		animation-delay:
+			0.33s;
+	}
+
+	.transition-interface {
 		position: absolute;
+
 		inset: 0;
 
-		z-index: 20;
-
 		display: grid;
+
 		place-items: center;
 
 		opacity: 0;
 
 		animation:
-			transition-loading
-			1.7s
-			cubic-bezier(0.22, 1, 0.36, 1)
+			transition-interface-in
+			650ms
+			180ms
+			ease-out
 			forwards;
-	}
-
-	.transition-leaving .transition-loading {
-		animation:
-			transition-loading-leave
-			0.82s
-			ease
-			forwards;
-	}
-
-	.transition-frame {
-		position: relative;
-
-		width: min(620px, 56vw);
-		height: min(345px, 42vh);
-
-		border:
-			1px solid
-			var(--hud-pink-soft);
-
-		background:
-			linear-gradient(
-				180deg,
-				rgba(255, 0, 128, 0.018),
-				rgba(0, 0, 0, 0.55)
-			);
-	}
-
-	.transition-corner {
-		position: absolute;
-
-		width: 27px;
-		height: 27px;
-
-		border-color:
-			var(--hud-pink);
-	}
-
-	.transition-corner.tl {
-		left: -1px;
-		top: -1px;
-		border-left: 1px solid;
-		border-top: 1px solid;
-	}
-
-	.transition-corner.tr {
-		right: -1px;
-		top: -1px;
-		border-right: 1px solid;
-		border-top: 1px solid;
-	}
-
-	.transition-corner.bl {
-		left: -1px;
-		bottom: -1px;
-		border-left: 1px solid;
-		border-bottom: 1px solid;
-	}
-
-	.transition-corner.br {
-		right: -1px;
-		bottom: -1px;
-		border-right: 1px solid;
-		border-bottom: 1px solid;
 	}
 
 	.transition-circle {
 		position: absolute;
 
 		left: 50%;
-		top: 48%;
+		top: 50%;
 
 		border:
 			1px solid
@@ -2559,31 +2585,41 @@
 			translate(-50%, -50%);
 
 		animation:
-			hud-ring
-			2s
+			boot-ring
+			1.7s
 			ease-out
 			infinite;
 	}
 
-	.circle-large {
-		width: 150px;
-		height: 150px;
+	.transition-circle.outer {
+		width: 145px;
+		height: 145px;
 	}
 
-	.circle-small {
-		width: 48px;
-		height: 48px;
-		animation-delay: 0.25s;
+	.transition-circle.inner {
+		width: 52px;
+		height: 52px;
+
+		animation-delay:
+			0.22s;
 	}
 
 	.transition-title {
 		position: absolute;
 
 		left: 50%;
-		top: 40%;
+		top: 44%;
 
 		transform:
 			translateX(-50%);
+
+		color:
+			rgba(
+				255,
+				255,
+				255,
+				0.68
+			);
 
 		font-family:
 			'Courier New',
@@ -2591,715 +2627,454 @@
 			monospace;
 
 		font-size:
-			clamp(0.66rem, 0.95vw, 0.86rem);
+			clamp(
+				0.65rem,
+				0.9vw,
+				0.85rem
+			);
 
-		letter-spacing: 0.18em;
+		letter-spacing:
+			0.15em;
 
-		color:
-			rgba(255, 255, 255, 0.68);
+		white-space: nowrap;
 	}
 
 	.transition-code {
 		position: absolute;
 
 		left: 50%;
-		top: 59%;
+		top: 55%;
 
 		transform:
 			translateX(-50%);
+
+		color:
+			rgba(
+				255,
+				255,
+				255,
+				0.35
+			);
 
 		font-family:
 			'Courier New',
 			Courier,
 			monospace;
 
-		font-size: 0.5rem;
+		font-size: 6px;
 
-		letter-spacing: 0.12em;
-
-		color:
-			rgba(255, 255, 255, 0.36);
-
-		white-space: nowrap;
+		letter-spacing:
+			0.12em;
 	}
 
-	.transition-bars {
+	.transition-code span {
+		color:
+			var(--hud-pink);
+	}
+
+	.transition-progress {
 		position: absolute;
 
 		left: 50%;
-		bottom: 23px;
+		top: 61%;
 
 		transform:
 			translateX(-50%);
 
 		display: flex;
+
 		gap: 4px;
 	}
 
-	.transition-bars span {
-		width: 6px;
+	.transition-progress span {
+		width: 7px;
 		height: 3px;
 
 		background:
 			var(--hud-pink-soft);
 
 		animation:
-			bar-glitch
-			1.8s
+			bar-pulse
+			1.2s
 			steps(4, end)
 			infinite;
 	}
 
-	.release-strips {
-		position: absolute;
-		inset: 0;
-		z-index: 30;
-	}
-
-	.release-strip {
+	.transition-flash {
 		position: absolute;
 
-		height: 3px;
-
-		background:
-			linear-gradient(
-				90deg,
-				transparent,
-				var(--hud-pink),
-				transparent
-			);
-
-		opacity: 0;
-
-		animation:
-			release-strip
-			0.86s
-			cubic-bezier(0.22, 1, 0.36, 1)
-			forwards;
-	}
-
-	.r1 { top: 18%; left: 7%; width: 52%; }
-	.r2 { top: 29%; right: 5%; width: 47%; animation-delay: 0.05s; }
-	.r3 { top: 42%; left: -3%; width: 63%; animation-delay: 0.1s; }
-	.r4 { top: 54%; left: 28%; width: 58%; animation-delay: 0.15s; }
-	.r5 { top: 66%; right: 8%; width: 51%; animation-delay: 0.2s; }
-	.r6 { top: 80%; left: 12%; width: 60%; animation-delay: 0.25s; }
-
-	.release-scan {
-		position: absolute;
 		inset: 0;
 
-		z-index: 31;
-
 		background:
-			repeating-linear-gradient(
-				180deg,
-				transparent 0,
-				transparent 5px,
-				rgba(255, 0, 128, 0.04) 6px
-			);
+			var(--hud-pink);
 
 		opacity: 0;
+	}
 
+	.transition-leaving
+		.transition-black {
 		animation:
-			release-scan
-			0.94s
-			ease-out
-			forwards;
-	}
-
-	.page-release {
-		position: absolute;
-		inset: 0;
-
-		z-index: 40;
-
-		background:
-			radial-gradient(
-				ellipse at center,
-				rgba(255, 0, 128, 0.03),
-				transparent 65%
-			);
-
-		opacity: 0;
-
-		animation:
-			page-release
-			0.86s
-			ease-out
-			forwards;
-	}
-
-	/* =====================================================
-	   KEYFRAMES
-	   ===================================================== */
-
-	@keyframes boot-in {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	@keyframes boot-out {
-		0% {
-			opacity: 1;
-			transform: scale(1);
-		}
-
-		15% {
-			opacity: 1;
-			transform: scale(1.002) translateX(-1px);
-		}
-
-		30% {
-			opacity: 0.98;
-			transform: scale(1.005) translateX(1px);
-		}
-
-		45% {
-			opacity: 0.9;
-			transform: scale(1.009) translateX(-2px);
-		}
-
-		60% {
-			opacity: 0.72;
-			transform: scale(1.014) translateX(2px);
-		}
-
-		75% {
-			opacity: 0.5;
-			transform: scale(1.021) translateX(-3px);
-		}
-
-		88% {
-			opacity: 0.22;
-			transform: scale(1.032) translateX(4px);
-		}
-
-		100% {
-			opacity: 0;
-			transform: scale(1.04) translateX(6px);
-		}
-	}
-
-	@keyframes loading-state-in {
-		0% {
-			opacity: 0;
-			transform: scale(1.08);
-		}
-
-		15% { opacity: 0.03; }
-
-		30% {
-			opacity: 0.12;
-			transform: scale(1.05);
-		}
-
-		45% {
-			opacity: 0.28;
-			transform: scale(1.03);
-		}
-
-		60% {
-			opacity: 0.52;
-			transform: scale(1.016);
-		}
-
-		75% {
-			opacity: 0.78;
-			transform: scale(1.006);
-		}
-
-		90% {
-			opacity: 0.96;
-			transform: scale(1.001);
-		}
-
-		100% {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
-	@keyframes loading-state-out {
-		0% {
-			opacity: 1;
-			transform: scale(1);
-		}
-
-		20% { opacity: 0.96; }
-
-		40% {
-			opacity: 0.82;
-			transform: scale(1.018) translateX(-1px);
-		}
-
-		60% {
-			opacity: 0.58;
-			transform: scale(1.04) translateX(2px);
-		}
-
-		80% {
-			opacity: 0.3;
-			transform: scale(1.065) translateX(-3px);
-		}
-
-		100% {
-			opacity: 0;
-			transform: scale(1.09) translateX(6px);
-		}
-	}
-
-	@keyframes boot-glitch {
-		0% {
-			opacity: 0;
-			transform: translateX(-15%) scaleX(0.65);
-		}
-
-		10% { opacity: 0.12; }
-
-		20% {
-			opacity: 0.45;
-			transform: translateX(-1%) scaleX(0.92);
-		}
-
-		30% {
-			opacity: 0.82;
-			transform: translateX(4%) scaleX(1.05);
-		}
-
-		40% {
-			opacity: 0.48;
-			transform: translateX(-2%) scaleX(0.94);
-		}
-
-		52% {
-			opacity: 0.88;
-			transform: translateX(5%) scaleX(1.07);
-		}
-
-		64% {
-			opacity: 0.44;
-			transform: translateX(-3%) scaleX(0.9);
-		}
-
-		76% {
-			opacity: 0.28;
-			transform: translateX(8%) scaleX(0.78);
-		}
-
-		90% {
-			opacity: 0.1;
-			transform: translateX(13%) scaleX(0.7);
-		}
-
-		100% {
-			opacity: 0;
-		}
-	}
-
-	@keyframes loading-ring {
-		0% {
-			opacity: 0.14;
-			transform: translate(-50%, -50%) scale(0.82);
-		}
-
-		20% { opacity: 0.24; }
-
-		40% {
-			opacity: 0.43;
-			transform: translate(-50%, -50%) scale(1);
-		}
-
-		60% { opacity: 0.28; }
-		80% { opacity: 0.1; }
-
-		100% {
-			opacity: 0;
-			transform: translate(-50%, -50%) scale(1.22);
-		}
-	}
-
-	@keyframes loading-tear {
-		0% {
-			opacity: 0;
-			transform: translateX(-8px);
-		}
-
-		15% { opacity: 0.1; }
-
-		30% {
-			opacity: 0.32;
-			transform: translateX(2px);
-		}
-
-		45% {
-			opacity: 0.78;
-			transform: translateX(-2px);
-		}
-
-		60% {
-			opacity: 0.48;
-			transform: translateX(3px);
-		}
-
-		75% {
-			opacity: 0.3;
-			transform: translateX(-1px);
-		}
-
-		88% {
-			opacity: 0.12;
-			transform: translateX(7px);
-		}
-
-		100% {
-			opacity: 0;
-		}
-	}
-
-	@keyframes boot-release {
-		0%,
-		68% { opacity: 0; }
-
-		78% { opacity: 0.012; }
-		86% { opacity: 0.045; }
-		93% { opacity: 0.015; }
-		100% { opacity: 0; }
-	}
-
-	@keyframes transition-in {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	@keyframes transition-blur {
-		0% {
-			opacity: 0;
-			transform: scale(1);
-			backdrop-filter: blur(0);
-		}
-
-		10% { opacity: 0.04; }
-
-		20% {
-			opacity: 0.12;
-			transform: scale(1.001);
-			backdrop-filter: blur(1px);
-		}
-
-		30% {
-			opacity: 0.25;
-			transform: scale(1.004);
-			backdrop-filter: blur(3px);
-		}
-
-		40% {
-			opacity: 0.42;
-			transform: scale(1.008);
-			backdrop-filter: blur(5px);
-		}
-
-		50% {
-			opacity: 0.59;
-			transform: scale(1.012);
-			backdrop-filter: blur(8px);
-		}
-
-		60% {
-			opacity: 0.74;
-			transform: scale(1.017);
-			backdrop-filter: blur(11px);
-		}
-
-		70% {
-			opacity: 0.86;
-			transform: scale(1.021);
-			backdrop-filter: blur(14px);
-		}
-
-		80% {
-			opacity: 0.92;
-			transform: scale(1.026);
-			backdrop-filter: blur(17px);
-		}
-
-		90% {
-			opacity: 0.62;
-			transform: scale(1.034);
-			backdrop-filter: blur(11px);
-		}
-
-		100% {
-			opacity: 0;
-			transform: scale(1.042);
-			backdrop-filter: blur(0);
-		}
-	}
-
-	@keyframes scene-distortion {
-		0% {
-			opacity: 0;
-			transform: translateY(0);
-		}
-
-		15% { opacity: 0.05; }
-
-		30% {
-			opacity: 0.16;
-			transform: translateY(-1px);
-		}
-
-		45% { opacity: 0.31; }
-
-		60% {
-			opacity: 0.52;
-			transform: translateY(2px);
-		}
-
-		75% {
-			opacity: 0.68;
-			transform: translateY(-2px);
-		}
-
-		90% {
-			opacity: 0.28;
-			transform: translateY(1px);
-		}
-
-		100% {
-			opacity: 0;
-			transform: translateY(0);
-		}
-	}
-
-	@keyframes transition-dark {
-		0% { opacity: 0; }
-		15% { opacity: 0.04; }
-		30% { opacity: 0.12; }
-		45% { opacity: 0.25; }
-		60% { opacity: 0.46; }
-		75% { opacity: 0.7; }
-		90% { opacity: 0.4; }
-		100% { opacity: 0; }
-	}
-
-	@keyframes transition-strip {
-		0% {
-			opacity: 0;
-			transform: translateX(-12%) scaleX(0.66);
-		}
-
-		8% { opacity: 0.08; }
-		16% { opacity: 0.22; }
-
-		24% {
-			opacity: 0.49;
-			transform: translateX(-1%) scaleX(0.9);
-		}
-
-		32% {
-			opacity: 0.78;
-			transform: translateX(3%) scaleX(1.04);
-		}
-
-		40% {
-			opacity: 0.96;
-			transform: translateX(5%) scaleX(1.08);
-		}
-
-		48% {
-			opacity: 0.72;
-			transform: translateX(-2%) scaleX(0.96);
-		}
-
-		56% {
-			opacity: 0.88;
-			transform: translateX(4%) scaleX(1.04);
-		}
-
-		64% {
-			opacity: 0.64;
-			transform: translateX(-3%) scaleX(0.92);
-		}
-
-		72% {
-			opacity: 0.46;
-			transform: translateX(5%) scaleX(0.87);
-		}
-
-		80% {
-			opacity: 0.29;
-			transform: translateX(8%) scaleX(0.79);
-		}
-
-		88% {
-			opacity: 0.15;
-			transform: translateX(12%) scaleX(0.71);
-		}
-
-		96% {
-			opacity: 0.04;
-			transform: translateX(16%) scaleX(0.64);
-		}
-
-		100% {
-			opacity: 0;
-			transform: translateX(20%) scaleX(0.6);
-		}
-	}
-
-	@keyframes transition-loading {
-		0% {
-			opacity: 0;
-			transform: scale(1.08);
-		}
-
-		15% { opacity: 0.03; }
-
-		30% {
-			opacity: 0.12;
-			transform: scale(1.05);
-		}
-
-		45% {
-			opacity: 0.29;
-			transform: scale(1.03);
-		}
-
-		60% {
-			opacity: 0.52;
-			transform: scale(1.016);
-		}
-
-		75% {
-			opacity: 0.78;
-			transform: scale(1.006);
-		}
-
-		90% {
-			opacity: 0.96;
-			transform: scale(1.001);
-		}
-
-		100% {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
-	.transition-leaving .transition-loading {
-		animation:
-			transition-loading-leave
-			0.82s
+			transition-black-out
+			720ms
 			ease
 			forwards;
 	}
 
-	@keyframes transition-loading-leave {
+	.transition-leaving
+		.transition-interface {
+		animation:
+			transition-interface-out
+			650ms
+			ease
+			forwards;
+	}
+
+	.transition-leaving
+		.transition-flash {
+		animation:
+			transition-flash
+			720ms
+			ease
+			forwards;
+	}
+
+	/* =====================================================
+	   BOOT / TRANSITION KEYFRAMES
+	   ===================================================== */
+
+	@keyframes boot-glitch {
 		0% {
-			opacity: 1;
-			transform: scale(1);
+			opacity: 0;
+
+			transform:
+				translateX(-14%)
+				scaleX(0.7);
 		}
 
-		20% { opacity: 0.94; }
+		18% {
+			opacity: 0.35;
+		}
 
-		40% {
+		32% {
 			opacity: 0.8;
-			transform: scale(1.02) translateX(-1px);
+
+			transform:
+				translateX(4%)
+				scaleX(1.06);
 		}
 
-		60% {
-			opacity: 0.58;
-			transform: scale(1.045) translateX(2px);
+		48% {
+			opacity: 0.42;
+
+			transform:
+				translateX(-2%)
+				scaleX(0.92);
 		}
 
-		80% {
-			opacity: 0.27;
-			transform: scale(1.07) translateX(-3px);
+		64% {
+			opacity: 0.85;
+
+			transform:
+				translateX(5%)
+				scaleX(1.04);
+		}
+
+		82% {
+			opacity: 0.22;
+
+			transform:
+				translateX(10%)
+				scaleX(0.78);
 		}
 
 		100% {
 			opacity: 0;
-			transform: scale(1.09) translateX(6px);
+
+			transform:
+				translateX(16%)
+				scaleX(0.65);
 		}
 	}
 
-	@keyframes hud-ring {
-		0% {
-			opacity: 0.14;
-			transform: translate(-50%, -50%) scale(0.82);
-		}
-
-		20% { opacity: 0.24; }
-
-		40% {
-			opacity: 0.43;
-			transform: translate(-50%, -50%) scale(1);
-		}
-
-		60% { opacity: 0.28; }
-		80% { opacity: 0.1; }
-
-		100% {
+	@keyframes boot-frame-in {
+		from {
 			opacity: 0;
-			transform: translate(-50%, -50%) scale(1.22);
+
+			transform:
+				scale(1.08);
+		}
+
+		to {
+			opacity: 1;
+
+			transform:
+				scale(1);
 		}
 	}
 
-	@keyframes release-strip {
+	@keyframes boot-ring {
 		0% {
-			opacity: 0;
-			transform: translateX(-15%) scaleX(0.66);
-		}
+			opacity: 0.12;
 
-		15% { opacity: 0.08; }
-
-		30% {
-			opacity: 0.32;
-			transform: translateX(-1%) scaleX(0.9);
+			transform:
+				translate(-50%, -50%)
+				scale(0.8);
 		}
 
 		45% {
-			opacity: 0.76;
-			transform: translateX(3%) scaleX(1.04);
-		}
+			opacity: 0.5;
 
-		60% {
-			opacity: 0.58;
-			transform: translateX(-2%) scaleX(0.94);
-		}
-
-		75% {
-			opacity: 0.34;
-			transform: translateX(5%) scaleX(0.82);
-		}
-
-		90% {
-			opacity: 0.12;
-			transform: translateX(12%) scaleX(0.7);
+			transform:
+				translate(-50%, -50%)
+				scale(1);
 		}
 
 		100% {
 			opacity: 0;
-			transform: translateX(21%) scaleX(0.6);
+
+			transform:
+				translate(-50%, -50%)
+				scale(1.25);
 		}
 	}
 
-	@keyframes release-scan {
-		0% { opacity: 0; }
-		30% { opacity: 0.04; }
-		55% { opacity: 0.15; }
-		75% { opacity: 0.08; }
-		100% { opacity: 0; }
+	@keyframes boot-exit {
+		0% {
+			opacity: 1;
+
+			transform:
+				scale(1);
+		}
+
+		35% {
+			opacity: 0.95;
+
+			transform:
+				scale(1.006)
+				translateX(-2px);
+		}
+
+		60% {
+			opacity: 0.72;
+
+			transform:
+				scale(1.015)
+				translateX(3px);
+		}
+
+		80% {
+			opacity: 0.35;
+
+			transform:
+				scale(1.028)
+				translateX(-4px);
+		}
+
+		100% {
+			opacity: 0;
+
+			transform:
+				scale(1.04)
+				translateX(6px);
+		}
 	}
 
-	@keyframes page-release {
-		0% { opacity: 0; }
-		35% { opacity: 0; }
-		55% { opacity: 0.008; }
-		72% { opacity: 0.028; }
-		88% { opacity: 0.012; }
-		100% { opacity: 0; }
+	@keyframes boot-flash {
+		0%,
+		55% {
+			opacity: 0;
+		}
+
+		66% {
+			opacity: 0.025;
+		}
+
+		72% {
+			opacity: 0;
+		}
+
+		81% {
+			opacity: 0.055;
+		}
+
+		87% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@keyframes transition-black-in {
+		from {
+			opacity: 0;
+		}
+
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes transition-black-out {
+		0% {
+			opacity: 1;
+		}
+
+		20% {
+			opacity: 0.96;
+		}
+
+		40% {
+			opacity: 0.82;
+		}
+
+		60% {
+			opacity: 0.55;
+		}
+
+		80% {
+			opacity: 0.24;
+		}
+
+		100% {
+			opacity: 0;
+		}
+	}
+
+	@keyframes route-glitch {
+		0% {
+			opacity: 0;
+
+			transform:
+				translateX(-12%)
+				scaleX(0.66);
+		}
+
+		12% {
+			opacity: 0.12;
+		}
+
+		26% {
+			opacity: 0.52;
+
+			transform:
+				translateX(-1%)
+				scaleX(0.92);
+		}
+
+		40% {
+			opacity: 0.95;
+
+			transform:
+				translateX(5%)
+				scaleX(1.08);
+		}
+
+		55% {
+			opacity: 0.68;
+
+			transform:
+				translateX(-2%)
+				scaleX(0.95);
+		}
+
+		70% {
+			opacity: 0.43;
+
+			transform:
+				translateX(5%)
+				scaleX(0.86);
+		}
+
+		85% {
+			opacity: 0.16;
+
+			transform:
+				translateX(11%)
+				scaleX(0.72);
+		}
+
+		100% {
+			opacity: 0;
+
+			transform:
+				translateX(18%)
+				scaleX(0.62);
+		}
+	}
+
+	@keyframes transition-interface-in {
+		from {
+			opacity: 0;
+
+			transform:
+				scale(1.07);
+		}
+
+		to {
+			opacity: 1;
+
+			transform:
+				scale(1);
+		}
+	}
+
+	@keyframes transition-interface-out {
+		0% {
+			opacity: 1;
+
+			transform:
+				scale(1);
+		}
+
+		35% {
+			opacity: 0.9;
+
+			transform:
+				scale(1.01);
+		}
+
+		65% {
+			opacity: 0.55;
+
+			transform:
+				scale(1.04);
+		}
+
+		100% {
+			opacity: 0;
+
+			transform:
+				scale(1.08);
+		}
+	}
+
+	@keyframes transition-flash {
+		0%,
+		38% {
+			opacity: 0;
+		}
+
+		48% {
+			opacity: 0.035;
+		}
+
+		55% {
+			opacity: 0;
+		}
+
+		67% {
+			opacity: 0.02;
+		}
+
+		74% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 0;
+		}
 	}
 
 	/* =====================================================
@@ -3309,14 +3084,15 @@
 	@media (max-width: 900px) {
 		.home-button {
 			left: 3%;
-			top: 2.5%;
-			width: 215px;
-			height: 90px;
+			top: 2%;
+
+			width: 190px;
+			height: 78px;
 		}
 
-		.edge-radar,
+		.radar,
 		.data-rail {
-			opacity: 0.18;
+			opacity: 0.15;
 		}
 
 		.bottom-module {
@@ -3324,56 +3100,60 @@
 		}
 
 		.bottom-stream {
-			width: 310px;
+			width: 300px;
 		}
 	}
 
 	@media (max-width: 650px) {
 		.home-button {
 			left: 4%;
-			top: 2.5%;
-			width: 175px;
-			height: 75px;
+			top: 2%;
+
+			width: 150px;
+			height: 65px;
 		}
 
-		.edge-radar,
+		.radar,
 		.data-rail,
-		.bottom-module,
-		.corner-cluster {
-			opacity: 0.1;
+		.bottom-module {
+			opacity: 0.08;
 		}
 
 		.bottom-stream {
-			width: 250px;
+			width: 230px;
 		}
 
-		.loading-frame,
-		.transition-frame {
+		.system-module {
+			opacity: 0.4;
+		}
+
+		.boot-frame {
 			width: 76vw;
-			height: 31vh;
+			height: 30vh;
 		}
 	}
+
+	/* =====================================================
+	   REDUCED MOTION
+	   ===================================================== */
 
 	@media (prefers-reduced-motion: reduce) {
 		.global-hud * {
 			animation: none !important;
 		}
 
-		.home-button:hover,
-		.home-button:focus-visible {
-			transform: none;
-			filter: none;
-		}
-
-		.signature-pink,
-		.signature-white,
-		.signature-scan,
-		.signature-noise {
+		.signature-glitch,
+		.signature-scan {
 			display: none;
 		}
 
-		.boot-transition,
-		.page-transition {
+		.home-button:hover,
+		.home-button:focus-visible {
+			transform: none;
+		}
+
+		.boot-screen,
+		.route-transition {
 			animation: none;
 		}
 	}
